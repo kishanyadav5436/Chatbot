@@ -1,0 +1,131 @@
+=======================================
+INCLUSIVITY CHATBOT - PROJECT RUNNER (Updated)
+=======================================
+
+This guide provides accurate commands to set up and run the Inclusivity Chatbot.
+Backend: Flask API (port 5056) with ML/LLM for DEI chat.
+Frontend: Static HTML/JS/CSS (port 8000).
+
+=======================================
+PREREQUISITES
+=======================================
+
+1. Python 3.8+
+2. MongoDB running locally (default: mongodb://localhost:27017/)
+3. Optional: GEMINI_API_KEY for LLM (.env), Google OAuth credentials
+
+=======================================
+STEP 1: BACKEND SETUP
+=======================================
+
+# Navigate to backend
+cd backend
+
+# Create & activate virtual environment
+python -m venv venv
+
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+# source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Download spaCy model (for NLP)
+python -m spacy download en_core_web_sm
+
+# Configure environment
+copy .env.example .env
+# Edit d:/Chatbot/backend/.env:
+# MONGO_URI=mongodb://localhost:27017/
+# JWT_SECRET=your-secure-secret-key (required)
+# GEMINI_API_KEY=your-gemini-key (optional for LLM)
+# GOOGLE_CLIENT_ID=... (optional)
+# GOOGLE_CLIENT_SECRET=...
+
+=======================================
+STEP 2: START BACKEND SERVER
+=======================================
+
+# In backend terminal (venv activated)
+python api_server.py
+
+# Runs on http://localhost:5056 (debug mode)
+# Auto-trains NLP model on first run
+
+=======================================
+STEP 3: START FRONTEND SERVER
+=======================================
+
+# New terminal:
+cd Frontend
+
+# Serve static files
+python -m http.server 8000
+
+# Alternatives:
+# Node: npx serve .
+# VS Code Live Server extension (port 5500)
+
+=======================================
+STEP 4: ACCESS THE APP
+=======================================
+
+- Frontend: http://localhost:8000
+- Backend API: http://localhost:5056
+
+Open http://localhost:8000 in browser. Supports guest login or register.
+
+=======================================
+TROUBLESHOOTING
+=======================================
+
+- MongoDB error: Start MongoDB service or check MONGO_URI in .env
+- Port 5056 busy: Kill process or change in api_server.py
+- Port 8000 busy: Use `python -m http.server 3000`
+- spaCy error: Re-run `python -m spacy download en_core_web_sm`
+- No .env: Ensure copy .env.example .env and edit vars
+- CORS issues: Matches localhost:8000/3000/5500
+- Check logs: backend/backend.log
+
+=======================================
+QUICK START (Two Terminals)
+=======================================
+
+Terminal 1 (Backend):
+```
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+copy .env.example .env
+REM Edit .env with MONGO_URI & JWT_SECRET
+python api_server.py
+```
+
+Terminal 2 (Frontend):
+```
+cd Frontend
+  ```
+plocalhost:8000
+
+=======================================
+DEVELOPMENT NOTES
+=======================================
+
+- Chat uses hybrid ML (scikit-learn/spaCy) + LLM (Gemini fallback)
+- History saved in MongoDB (logged-in users)
+- Guest mode available
+- Auth: Email/password or Google OAuth
+- No additional build steps needed
+
+=======================================
+STOP SERVERS
+=======================================
+
+Ctrl+C in each terminal.
+
+=======================================
+
