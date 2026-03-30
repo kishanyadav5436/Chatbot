@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.1);
+    border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
+
+/* Markdown Styles */
+.prose { font-size: 0.95rem; line-height: 1.7; }
+.prose p { margin-bottom: 0.75rem; }
+.prose code { 
+    background: rgba(59, 130, 246, 0.1); 
+    color: #2563eb;
+    padding: 0.2rem 0.4rem; 
+    border-radius: 8px; 
+    font-weight: 700;
+}
+.dark .prose code { color: #60a5fa; background: rgba(255, 255, 255, 0.05); }
+
+/* UI Elements */
+.active-chat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 25%; bottom: 25%;
+    width: 4px;
+    background: #fff;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Input Focus */
+textarea:focus { box-shadow: none !important; }
+
+/* Transitions */
+#sidebar {
+    box-shadow: 20px 0 60px rgba(0,0,0,0.02);
+}
+.dark #sidebar {
+    box-shadow: 20px 0 60px rgba(0,0,0,0.2);
+}
