@@ -331,9 +331,12 @@ def google_callback():
         frontend_url = f"{base_frontend_url}?token={app_token}&email={user['email']}"
         return redirect(frontend_url)
     except Exception as e:
-        logging.error(f"Google OAuth Error: {e}")
-        # Return a simple, safe error message to the client
-        return "An error occurred during Google authentication. Please check logs for details.", 500
+        import traceback
+        error_details = traceback.format_exc()
+        logging.error(f"Google OAuth Error Tracker: {error_details}")
+        
+        # Temporarily return the actual error string to the user so we can instantly see what failed!
+        return f"<h1>Google Auth Failed</h1><p><b>Error Details:</b> {str(e)}</p><p>Please share this error message with me!</p>", 500
 
 @app.route("/api/chat/history", methods=["GET"])
 def get_history():
