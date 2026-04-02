@@ -11,7 +11,7 @@ import numpy as np # Import numpy for array handling
 # Load the spaCy model
 try:
     # Ensure you run 'python -m spacy download en_core_web_sm' if this fails
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
     logging.info("spaCy model 'en_core_web_sm' loaded successfully.")
 except OSError:
     logging.error("spaCy model 'en_core_web_sm' not found. Please run 'python -m spacy download en_core_web_sm'")
@@ -30,7 +30,10 @@ class IntentClassifier:
     def spacy_tokenizer(self, text):
         if not nlp: return []
         # Lemmatize and remove stop words/punctuation
-        return [token.lemma_.lower() for token in nlp(text) if not token.is_punct and not token.is_stop]
+        tokens = [token.lemma_.lower() for token in nlp(text)]
+        filtered_tokens = [t for t in tokens if not nlp.vocab[t].is_punct and not nlp.vocab[t].is_stop]
+        # If all tokens were removed (e.g., only stop words or short phrases), return the original ones to avoid empty vocabulary errors
+        return filtered_tokens if filtered_tokens else tokens
 
     def train(self, nlu_data_path="data/nlu.yml"):
         """Trains the classifier on the NLU data."""
