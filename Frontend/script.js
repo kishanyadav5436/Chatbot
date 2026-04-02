@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://chatbot-1-ofxq.onrender.com';
+    const API_URL = 'https://chatbot-3-hpx2.onrender.com';
     
     // State
     let authToken = localStorage.getItem('token');
