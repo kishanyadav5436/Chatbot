@@ -1,0 +1,62 @@
+nlu:
+  - intent: greet
+    examples: |
+      - hello
+      - hi
+      - hey
+      - good morning
+      - good afternoon
+  - intent: goodbye
+    examples: |
+      - bye
+      - goodbye
+      - see you later
+      - catch you later
+  - intent: thanks
+    examples: |
+      - thanks
+      - thank you
+      - appreciate it
+      - thanks a lot
+  - intent: ask_diversity
+    examples: |
+      - what is diversity
+      - define diversity
+      - can you explain diversity
+      - what does diversity mean
+  - intent: ask_equity
+    examples: |
+      - what is equity
+      - define equity
+      - can you explain equity
+      - what does equity mean
+  - intent: ask_inclusion
+    examples: |
+      - what is inclusion
+      - define inclusion
+      - can you explain inclusion
+      - what does inclusion mean
+  - intent: ask_accessibility
+    examples: |
+      - what is accessibility
+      - define accessibility
+      - can you explain accessibility
+      - what does accessibility mean
+  - intent: ask_bias
+    examples: |
+      - what is unconscious bias
+      - define bias
+      - explain unconscious bias
+      - what does bias mean
+  - intent: affirm
+    examples: |
+      - yes
+      - yeah
+      - absolutely
+      - indeed
+  - intent: deny
+    examples: |
+      - no
+      - nope
+      - not really
+      - absolutely not

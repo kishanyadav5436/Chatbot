@@ -10,11 +10,11 @@ import numpy as np # Import numpy for array handling
 
 # Load the spaCy model
 try:
-    # Ensure you run 'python -m spacy download en_core_web_md' if this fails
-    nlp = spacy.load("en_core_web_md")
-    logging.info("spaCy model 'en_core_web_md' loaded successfully.")
+    # Ensure you run 'python -m spacy download en_core_web_sm' if this fails
+    nlp = spacy.load("en_core_web_sm")
+    logging.info("spaCy model 'en_core_web_sm' loaded successfully.")
 except OSError:
-    logging.error("spaCy model 'en_core_web_md' not found. Please run 'python -m spacy download en_core_web_md'")
+    logging.error("spaCy model 'en_core_web_sm' not found. Please run 'python -m spacy download en_core_web_sm'")
     nlp = None
 
 class IntentClassifier:

@@ -448,4 +448,5 @@ def append_data(user_id, email, is_guest):
 
 
 if __name__ == "__main__":
-    app.run(port=5056, debug=True)
+    port = int(os.environ.get("PORT", 5056))
+    app.run(host="0.0.0.0", port=port, debug=False)

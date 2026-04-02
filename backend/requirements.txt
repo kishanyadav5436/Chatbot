@@ -13,5 +13,4 @@ sentence-transformers
 torch
 pandas
 openpyxl
-
-
+gunicorn
