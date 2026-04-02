@@ -5,6 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let authToken = localStorage.getItem('token');
     let userEmail = localStorage.getItem('email');
     let currentConversationId = localStorage.getItem('currentConversationId');
+
+    // Parse Token from URL (for Google OAuth callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token');
+    const emailParam = urlParams.get('email');
+    if (tokenParam) {
+        localStorage.setItem('token', tokenParam);
+        if (emailParam) localStorage.setItem('email', emailParam);
+        
+        // Clean up the URL to remove the token hash
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        authToken = tokenParam;
+        userEmail = emailParam || localStorage.getItem('email');
+    }
     
     // ⭐ CONCURRENCY: Message queue for parallel processing
     let messageQueue = [];

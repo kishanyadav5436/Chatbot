@@ -27,8 +27,11 @@ if not JWT_SECRET:
 app = Flask(__name__)
 app.secret_key = JWT_SECRET 
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
 # Configure CORS
-CORS(app, origins=[ "https://inclusionchatbot.vercel.app","http://localhost:8000", "http://localhost:*", "http://127.0.0.1:*", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "file://*", "null"], supports_credentials=True)
+CORS(app, origins="*", supports_credentials=True)
 
 @app.route('/', methods=['GET'])
 def root():
