@@ -28,7 +28,7 @@ app = Flask(__name__)
 app.secret_key = JWT_SECRET 
 
 # Configure CORS
-CORS(app, origins=["http://localhost:8000", "http://localhost:*", "http://127.0.0.1:*", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "file://*", "null"], supports_credentials=True)
+CORS(app, origins=[ "https://inclusionchatbot.vercel.app","http://localhost:8000", "http://localhost:*", "http://127.0.0.1:*", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "file://*", "null"], supports_credentials=True)
 
 @app.route('/', methods=['GET'])
 def root():
