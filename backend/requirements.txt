@@ -1,5 +1,6 @@
 Flask
 Flask-CORS
+flask-limiter
 python-dotenv
 PyJWT
 pymongo

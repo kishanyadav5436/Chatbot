@@ -3,10 +3,12 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import pymongo
 import bcrypt
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from authlib.integrations.flask_client import OAuth
 from functools import wraps
@@ -30,8 +32,17 @@ app.secret_key = JWT_SECRET
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure CORS
-CORS(app, origins="*", supports_credentials=True)
+# Configure CORS - restricted to known frontend origins
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "https://chatbot-3-hpx2.onrender.com,http://localhost:8000,http://localhost:5500").split(",")
+CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
+
+# Rate Limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 @app.route('/', methods=['GET'])
 def root():
@@ -111,7 +122,7 @@ def get_bot_response(classification, user_message):
 # Helper to generate JWT
 def generate_app_token(user_id, email):
     return jwt.encode(
-        {"user_id": str(user_id), "email": email, "exp": datetime.utcnow() + timedelta(hours=5)},
+        {"user_id": str(user_id), "email": email, "exp": datetime.now(timezone.utc) + timedelta(hours=5)},
         JWT_SECRET,
         algorithm="HS256"
     )
@@ -180,8 +191,8 @@ def chat(user_id, email, is_guest):
             conversation_id = ObjectId(conversation_id_str) if conversation_id_str else None
             
             new_messages = [
-                {"sender": "user", "content": message, "timestamp": datetime.utcnow()},
-                {"sender": "bot", "content": bot_reply, "timestamp": datetime.utcnow()}
+                {"sender": "user", "content": message, "timestamp": datetime.now(timezone.utc)},
+                {"sender": "bot", "content": bot_reply, "timestamp": datetime.now(timezone.utc)}
             ]
 
             if conversation_id:
@@ -200,7 +211,7 @@ def chat(user_id, email, is_guest):
                     "userId": user_id,
                     "title": title,
                     "messages": new_messages,
-                    "createdAt": datetime.utcnow()
+                    "createdAt": datetime.now(timezone.utc)
                 }
                 result = conversations_collection.insert_one(new_conversation)
                 new_id = result.inserted_id
@@ -214,8 +225,10 @@ def chat(user_id, email, is_guest):
         return jsonify({"reply": bot_reply, "conversationId": None})
     except Exception as e:
         logging.error(f"Error processing chat message: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/api/auth/register", methods=["POST"])
+@limiter.limit("10 per minute")
 def register():
     # Validate database connection
     if client is None or db is None:
@@ -252,6 +265,7 @@ def register():
         return jsonify({"msg": "Registration failed"}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
+@limiter.limit("15 per minute")
 def login():
     # Validate database connection
     if client is None or db is None:
@@ -282,6 +296,7 @@ def login():
         return jsonify({"msg": "Login failed"}), 500
     
 @app.route("/api/auth/guest", methods=["POST"])
+@limiter.limit("20 per minute")
 def guest_login():
     # Validate database connection
     if client is None or db is None:
@@ -335,8 +350,9 @@ def google_callback():
         error_details = traceback.format_exc()
         logging.error(f"Google OAuth Error Tracker: {error_details}")
         
-        # Temporarily return the actual error string to the user so we can instantly see what failed!
-        return f"<h1>Google Auth Failed</h1><p><b>Error Details:</b> {str(e)}</p><p>Please share this error message with me!</p>", 500
+        # Return generic error - details are in server logs only
+        base_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8000")
+        return f'<h1>Authentication Failed</h1><p>Google sign-in could not be completed. Please try again.</p><p><a href="{base_frontend_url}">Return to login</a></p>', 500
 
 @app.route("/api/chat/history", methods=["GET"])
 def get_history():
@@ -415,11 +431,18 @@ def reset_conversation(user_id, email, is_guest):
         return jsonify({"msg": "Failed to reset conversation"}), 500
 
 
+# Admin email allowlist from environment variable
+ADMIN_EMAILS = [e.strip() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()]
+
+def is_admin(email):
+    """Check if the email is in the admin allowlist."""
+    return email in ADMIN_EMAILS
+
 @app.route("/api/admin/load-data", methods=["POST"])
 @token_required
 def load_data(user_id, email, is_guest):
     """Reload data from files (admin only)."""
-    if "admin" not in email:
+    if not is_admin(email):
         return jsonify({"error": "Admin only"}), 403
     
     sys.path.append(os.path.dirname(__file__))
@@ -439,7 +462,7 @@ def load_data(user_id, email, is_guest):
 @token_required
 def append_data(user_id, email, is_guest):
     """Append data from data/ folder (admin only, handles duplicates)."""
-    if "admin" not in email:
+    if not is_admin(email):
         return jsonify({"error": "Admin only"}), 403
     
     sys.path.append(os.path.dirname(__file__))

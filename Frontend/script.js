@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-10 animate-in slide-in-from-bottom-8 duration-700`;
         
-        const bubbleContent = sender === 'bot' ? marked.parse(content || '') : content;
+        const bubbleContent = sender === 'bot' ? DOMPurify.sanitize(marked.parse(content || '')) : content;
         
         div.innerHTML = `
             <div class="flex max-w-[92%] md:max-w-[80%] ${sender === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-5">

@@ -9,7 +9,7 @@ A service to help the bot track the conversation context, including:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import deque
 
 logger = logging.getLogger(__name__)
@@ -34,8 +34,8 @@ class ConversationMap:
         self.entities = {}  # Track extracted entities by type
         self.conversation_state = {
             "is_active": True,
-            "start_time": datetime.utcnow(),
-            "last_updated": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
+            "last_updated": datetime.now(timezone.utc),
             "message_count": 0,
             "current_topic": None,
             "context_stack": []  # Stack for maintaining context
@@ -58,7 +58,7 @@ class ConversationMap:
         # Add intent to history
         self.intent_history.append({
             "intent": intent,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(timezone.utc)
         })
         
         # Update topic based on intent
@@ -76,7 +76,7 @@ class ConversationMap:
                     self.entities[entity_type].append(entity_value)
         
         # Update conversation state
-        self.conversation_state["last_updated"] = datetime.utcnow()
+        self.conversation_state["last_updated"] = datetime.now(timezone.utc)
         self.conversation_state["message_count"] += 1
         
         logger.info(f"Conversation map updated - Intent: {intent}, Topic: {topic}, Total messages: {self.conversation_state['message_count']}")
@@ -173,8 +173,8 @@ class ConversationMap:
         self.entities.clear()
         self.conversation_state = {
             "is_active": True,
-            "start_time": datetime.utcnow(),
-            "last_updated": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
+            "last_updated": datetime.now(timezone.utc),
             "message_count": 0,
             "current_topic": None,
             "context_stack": []
