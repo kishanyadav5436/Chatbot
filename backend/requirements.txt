@@ -10,8 +10,6 @@ pyyaml
 scikit-learn
 spacy
 google-genai
-sentence-transformers
-torch
 pandas
 openpyxl
 gunicorn
