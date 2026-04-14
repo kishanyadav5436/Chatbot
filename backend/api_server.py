@@ -41,10 +41,10 @@ ALLOWED_ORIGINS = [
 ]
 CORS(
     app,
-    origins=ALLOWED_ORIGINS,
     supports_credentials=True,
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "x-auth-token"]
+    resources={r"/*": {"origins": [
+        "https://inclusionchatbot.vercel.app"
+    ]}}
 )
 
 # Rate Limiting
