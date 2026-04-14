@@ -33,8 +33,19 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure CORS - restricted to known frontend origins
-ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "https://chatbot-3-hpx2.onrender.com,https://inclusinchatbot.vercel.app,http://localhost:8000,http://localhost:5500").split(",") if origin.strip()]
-CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
+ALLOWED_ORIGINS = [
+ "https://chatbot-3-hpx2.onrender.com",
+ "https://inclusionchatbot.vercel.app",  
+ "http://localhost:8000",
+ "http://localhost:5500"
+]
+CORS(
+    app,
+    origins=ALLOWED_ORIGINS,
+    supports_credentials=True,
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "x-auth-token"]
+)
 
 # Rate Limiting
 limiter = Limiter(
