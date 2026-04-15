@@ -449,12 +449,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authToken) {
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('chat-container').classList.remove('hidden');
-        document.getElementById('username-display').innerText = userEmail ? userEmail.split('@')[0] : 'User';
         
-        // Initialize Sidebar: Open on Desktop, Closed on Mobile
-        if (window.innerWidth >= 768) {
-            sidebar.classList.remove('-translate-x-full');
-            mainContent.classList.add('md:ml-80');
+        // Initialize Global Sidebar (Narrow)
+        const globalSidebar = document.getElementById('global-sidebar');
+        if (window.innerWidth >= 1024) {
+            mainContent.style.marginLeft = '5rem'; // Match w-20 sidebar
         }
         
         loadChatHistory();
