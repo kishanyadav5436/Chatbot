@@ -316,7 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sidebar-toggle-btn').onclick = toggleSidebar;
     // Global Nav & History Drawer
     const historyBtn = document.getElementById('history-drawer-btn');
-    const sidebar = document.getElementById('sidebar');
     const sidebarClose = document.getElementById('sidebar-close-btn');
 
     historyBtn.onclick = () => {
@@ -396,18 +395,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const spinner = document.getElementById(`${type}-spinner`);
         spinner?.classList.remove('hidden');
         try {
+            console.log(`Attempting ${type} auth at: ${API_URL}/api/auth/${type}`);
             const res = await fetch(`${API_URL}/api/auth/${type}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
             const data = await res.json();
+            console.log('Auth response status:', res.status, data);
+            
             if (res.ok) {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('email', data.email || body.email);
                 location.reload(); 
-            } else { showToast('Auth Failed', data.msg || 'Error', 'error'); }
-        } catch (e) { showToast('Server Error', 'Backend offline', 'error'); }
+            } else { 
+                showToast('Auth Failed', data.msg || data.error || 'Error', 'error'); 
+            }
+        } catch (e) { 
+            console.error('Auth fetch error:', e);
+            showToast('Server Error', 'Could not reach backend. Possible CORS error or backend offline.', 'error'); 
+        }
         finally { spinner?.classList.add('hidden'); }
     }
 
@@ -435,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     document.getElementById('theme-switch-modal').checked = savedTheme === 'dark';
 
-    document.getElementById('settings-btn').onclick = () => document.getElementById('settingsModal').classList.remove('hidden');
+    document.getElementById('nav-settings-btn').onclick = () => document.getElementById('settingsModal').classList.remove('hidden');
     document.getElementById('close-settings-btn').onclick = () => document.getElementById('settingsModal').classList.add('hidden');
     document.getElementById('settings-form').onsubmit = (e) => {
         e.preventDefault();
