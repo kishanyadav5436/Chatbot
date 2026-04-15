@@ -37,67 +37,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize marked
     marked.setOptions({ gfm: true, breaks: true });
 
-    function renderMessage(content, sender = 'bot') {
+    function renderMessage(text, sender) {
         const welcome = document.getElementById('welcome-screen');
         if (welcome) welcome.style.display = 'none';
 
         const div = document.createElement('div');
+        div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-8 message-animate group`;
+        
         const isBot = sender === 'bot';
-        div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-10 message-container message-animate`;
-        
-        const bubbleContent = isBot ? DOMPurify.sanitize(marked.parse(content || '')) : content;
-        
+        const avatarUrl = isBot ? 'https://ui-avatars.com/api/?name=IA&background=6366f1&color=fff' : `https://ui-avatars.com/api/?name=${encodeURIComponent(localStorage.getItem('email') || 'U')}&background=cbd5e1&color=475569`;
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         div.innerHTML = `
-            <div class="flex max-w-[92%] md:max-w-[80%] ${sender === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-5 group">
-                <div class="w-11 h-11 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-6 ${
-                    sender === 'user' ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white' : 'glass-effect text-blue-600 border border-slate-100 dark:border-gray-800'
-                }">
-                    <i class="bi ${sender === 'user' ? 'bi-person-fill' : 'bi-robot'}"></i>
-                </div>
-                <div class="flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} relative">
-                    <div class="px-6 py-4 rounded-[1.8rem] shadow-sm relative transition-all duration-300 ${
-                        sender === 'user' 
-                        ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-tr-none' 
-                        : 'glass-effect text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-100 dark:border-gray-800'
-                    } prose prose-slate dark:prose-invert max-w-none font-medium">
-                        ${bubbleContent}
-                        ${isBot ? `
-                        <button onclick="copyToClipboard(\`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="copy-btn absolute -right-12 top-0 p-2 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-slate-100 dark:border-gray-700 text-slate-400 hover:text-blue-500 transition-all">
-                            <i class="bi bi-copy"></i>
-                        </button>` : ''}
+            <div class="flex ${isBot ? 'flex-row' : 'flex-row-reverse'} gap-4 max-w-[85%] md:max-w-[70%]">
+                <!-- Avatar -->
+                <div class="flex-shrink-0 mt-1">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 dark:border-gray-800 shadow-sm">
+                        <img src="${avatarUrl}" class="w-full h-full object-cover">
                     </div>
-                    <span class="text-[9px] mt-2 text-slate-400 uppercase font-black tracking-[0.2em] opacity-60">
-                        ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                </div>
+
+                <!-- Bubble Container -->
+                <div class="flex flex-col ${isBot ? 'items-start' : 'items-end'} gap-2">
+                    <div class="${isBot ? 'bot-bubble' : 'user-bubble'} px-6 py-4 relative">
+                        <div class="prose dark:prose-invert max-w-none text-inherit">
+                            ${isBot ? marked.parse(DOMPurify.sanitize(text)) : `<p>${text}</p>`}
+                        </div>
+                        
+                        <!-- Status & Time -->
+                        <div class="flex items-center gap-1.5 mt-2 opacity-50 text-[10px] font-bold">
+                            <span>${time}</span>
+                            ${!isBot ? '<i class="bi bi-check2-all text-indigo-200"></i>' : ''}
+                        </div>
+                    </div>
+
+                    <!-- Action Bar (Bot Only) -->
+                    ${isBot ? `
+                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                            <button class="message-action-btn" onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Listen"><i class="bi bi-volume-up"></i></button>
+                            <button class="message-action-btn" onclick="copyToClipboard(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy"><i class="bi bi-copy"></i></button>
+                            <button class="message-action-btn" title="Refine"><i class="bi bi-arrow-repeat"></i></button>
+                            <button class="message-action-btn" title="Report"><i class="bi bi-hand-thumbs-down"></i></button>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
         
         chatBox.appendChild(div);
-        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function showQueueTyping() {
-        // Remove old typing
         document.getElementById('queue-typing')?.remove();
-        
         const div = document.createElement('div');
         div.id = 'queue-typing';
-        div.className = 'flex justify-start mb-10';
+        div.className = 'flex justify-start mb-8 message-animate';
         div.innerHTML = `
-            <div class="flex gap-5 items-center">
-                <div class="w-11 h-11 rounded-2xl bg-white dark:bg-gray-800 border border-slate-100 dark:border-gray-700 flex items-center justify-center text-blue-600 shadow-sm">
+            <div class="flex gap-4 items-center">
+                <div class="w-10 h-10 rounded-full border border-slate-200 dark:border-gray-800 flex items-center justify-center text-indigo-600 shadow-sm">
                     <i class="bi bi-robot"></i>
                 </div>
-                <div class="flex gap-2 bg-slate-100/50 dark:bg-gray-800/50 px-6 py-5 rounded-[1.8rem] rounded-tl-none">
-                    <span>🤖 ${messageQueue.length} task${messageQueue.length > 1 ? 's' : ''}....</span>
-                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce ml-2"></span>
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                <div class="flex gap-2 bg-slate-50 dark:bg-gray-900 border border-slate-100 dark:border-gray-800 px-6 py-4 rounded-3xl rounded-tl-none font-bold text-xs text-slate-500">
+                    <span class="animate-pulse">Thinking (${messageQueue.length})</span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
                 </div>
             </div>
         `;
         chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     
@@ -306,8 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
 
     document.getElementById('sidebar-toggle-btn').onclick = toggleSidebar;
-    document.getElementById('sidebar-close-btn').onclick = toggleSidebar;
-    document.getElementById('sidebar-overlay').onclick = toggleSidebar;
+    // Global Nav & History Drawer
+    const historyBtn = document.getElementById('history-drawer-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarClose = document.getElementById('sidebar-close-btn');
+
+    historyBtn.onclick = () => {
+        sidebar.classList.toggle('-translate-x-full');
+    };
+
+    sidebarClose.onclick = () => {
+        sidebar.classList.add('-translate-x-full');
+    };
+
     document.getElementById('nav-theme-toggle').onclick = toggleTheme;
 
     chatForm.addEventListener('submit', (e) => {

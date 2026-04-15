@@ -72,6 +72,55 @@ html { font-size: 14px; }
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
 
+/* Message Bubbles (Slothpilot Style) */
+.bot-bubble {
+    background-color: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.5rem;
+    border-top-left-radius: 0.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.dark .bot-bubble {
+    background-color: #0f172a;
+    border-color: #1e293b;
+}
+
+.user-bubble {
+    background: #6366f1;
+    color: #fff;
+    border-radius: 1.5rem;
+    border-bottom-right-radius: 0.25rem;
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+}
+
+/* Action Icons below messages */
+.message-action-btn {
+    @apply text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 flex items-center justify-center;
+}
+
+/* Sidebar & Drawer Transitions */
+#sidebar.drawer-open {
+    transform: translateX(0);
+}
+
+#main-content {
+    transition: margin-left 0.5s ease-in-out;
+}
+
+/* Avatar Styling */
+.avatar-ring {
+    padding: 2px;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+/* Floating Input */
+#input-container {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#input-container:focus-within {
+    transform: translateY(-5px);
+}
+
 /* Markdown Styles & Responsiveness */
 .prose { 
     font-size: 0.95rem; 
@@ -83,13 +132,13 @@ html { font-size: 14px; }
 .prose p { margin-bottom: 0.85rem; }
 .prose code { 
     background: rgba(59, 130, 246, 0.08); 
-    color: #2563eb;
+    color: #4f46e5;
     padding: 0.25rem 0.5rem; 
     border-radius: 10px; 
     font-weight: 600;
     font-size: 0.85em;
 }
-.dark .prose code { color: #93c5fd; background: rgba(255, 255, 255, 0.05); }
+.dark .prose code { color: #818cf8; background: rgba(255, 255, 255, 0.05); }
 
 /* Message Animations */
 .message-animate {
@@ -103,17 +152,9 @@ html { font-size: 14px; }
 
 /* UI Elements */
 .active-chat {
-    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
-}
-
-.active-chat::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 25%; bottom: 25%;
-    width: 4px;
-    background: #fff;
-    border-radius: 0 4px 4px 0;
-    opacity: 0.8;
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-left: 3px solid #6366f1 !important;
+    color: #6366f1 !important;
 }
 
 /* Floating Input Style */
