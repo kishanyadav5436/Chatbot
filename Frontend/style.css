@@ -46,6 +46,23 @@ html { font-size: 14px; }
     animation: blob 7s infinite;
 }
 
+/* Auth Background Slideshow */
+@keyframes authFade {
+    0%, 100% { opacity: 0; }
+    10%, 30% { opacity: 1; }
+    40% { opacity: 0; }
+}
+
+.animate-auth-slideshow-1 {
+    animation: authFade 18s infinite;
+}
+.animate-auth-slideshow-2 {
+    animation: authFade 18s infinite -6s;
+}
+.animate-auth-slideshow-3 {
+    animation: authFade 18s infinite -12s;
+}
+
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
