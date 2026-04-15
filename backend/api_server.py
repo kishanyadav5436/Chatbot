@@ -34,17 +34,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure CORS - restricted to known frontend origins
 ALLOWED_ORIGINS = [
- "https://chatbot-3-hpx2.onrender.com",
- "https://inclusionchatbot.vercel.app",  
- "http://localhost:8000",
- "http://localhost:5500"
+    "https://inclusionchatbot.vercel.app",
+    "https://chatbot-3-hpx2.onrender.com",
+    "http://localhost:8000",
+    "http://localhost:5500",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:5500"
 ]
+
 CORS(
     app,
+    origins=ALLOWED_ORIGINS,
     supports_credentials=True,
-    resources={r"/*": {"origins": [
-        "https://inclusionchatbot.vercel.app"
-    ]}}
+    allow_headers=["Content-Type", "x-auth-token", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
 # Rate Limiting
