@@ -107,6 +107,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function showTyping() {
+        document.getElementById('typing-indicator')?.remove();
+        const div = document.createElement('div');
+        div.id = 'typing-indicator';
+        div.className = 'flex justify-start mb-10 message-animate';
+        div.innerHTML = `
+            <div class="flex gap-5 items-center">
+                <div class="w-11 h-11 rounded-2xl glass-effect flex items-center justify-center text-blue-600 shadow-sm">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="flex gap-2 glass-effect px-6 py-5 rounded-[1.8rem] rounded-tl-none border border-slate-100 dark:border-gray-800">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></span>
+                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+            </div>
+        `;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
     // --- API Interactions ---
 
     async function sendMessage(text) {
