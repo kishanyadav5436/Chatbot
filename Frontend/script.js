@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatForm = document.getElementById('chat-form');
     const sendBtn = document.getElementById('send-btn');
     const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
     const historyList = document.getElementById('chat-history-list');
     
     // Initialize marked
@@ -261,9 +262,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Controls ---
 
     function toggleSidebar() {
-        const isOpen = !sidebar.classList.contains('-translate-x-full');
-        sidebar.classList.toggle('-translate-x-full', isOpen);
-        document.getElementById('sidebar-overlay').classList.toggle('hidden', isOpen);
+        const isMobile = window.innerWidth < 768;
+        const isClosed = sidebar.classList.contains('-translate-x-full');
+        
+        if (isClosed) {
+            // Opening
+            sidebar.classList.remove('-translate-x-full');
+            if (!isMobile) mainContent.classList.add('md:ml-80');
+            if (isMobile) document.getElementById('sidebar-overlay').classList.remove('hidden');
+        } else {
+            // Closing
+            sidebar.classList.add('-translate-x-full');
+            if (!isMobile) mainContent.classList.remove('md:ml-80');
+            if (isMobile) document.getElementById('sidebar-overlay').classList.add('hidden');
+        }
     }
 
     function toggleTheme() {
@@ -393,6 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('authModal').classList.add('hidden');
         document.getElementById('chat-container').classList.remove('hidden');
         document.getElementById('username-display').innerText = userEmail ? userEmail.split('@')[0] : 'User';
+        
+        // Initialize Sidebar: Open on Desktop, Closed on Mobile
+        if (window.innerWidth >= 768) {
+            sidebar.classList.remove('-translate-x-full');
+            mainContent.classList.add('md:ml-80');
+        }
+        
         loadChatHistory();
         if (currentConversationId) loadConversation(currentConversationId);
     }
