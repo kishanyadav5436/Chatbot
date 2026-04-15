@@ -36,31 +36,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize marked
     marked.setOptions({ gfm: true, breaks: true });
 
-    // --- Core Chat Rendering ---
-
     function renderMessage(content, sender = 'bot') {
         const welcome = document.getElementById('welcome-screen');
         if (welcome) welcome.style.display = 'none';
 
         const div = document.createElement('div');
-        div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-10 animate-in slide-in-from-bottom-8 duration-700`;
+        const isBot = sender === 'bot';
+        div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-10 message-container message-animate`;
         
-        const bubbleContent = sender === 'bot' ? DOMPurify.sanitize(marked.parse(content || '')) : content;
+        const bubbleContent = isBot ? DOMPurify.sanitize(marked.parse(content || '')) : content;
         
         div.innerHTML = `
-            <div class="flex max-w-[92%] md:max-w-[80%] ${sender === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-5">
-                <div class="w-11 h-11 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl shadow-lg transition-transform hover:scale-110 ${
-                    sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-blue-600 border border-slate-100 dark:border-gray-700'
+            <div class="flex max-w-[92%] md:max-w-[80%] ${sender === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-5 group">
+                <div class="w-11 h-11 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-6 ${
+                    sender === 'user' ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white' : 'glass-effect text-blue-600 border border-slate-100 dark:border-gray-800'
                 }">
                     <i class="bi ${sender === 'user' ? 'bi-person-fill' : 'bi-robot'}"></i>
                 </div>
-                <div class="flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'}">
-                    <div class="px-6 py-4 rounded-[1.8rem] shadow-sm ${
+                <div class="flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} relative">
+                    <div class="px-6 py-4 rounded-[1.8rem] shadow-sm relative transition-all duration-300 ${
                         sender === 'user' 
-                        ? 'bg-blue-600 text-white rounded-tr-none' 
-                        : 'bg-white dark:bg-gray-900 border border-slate-100 dark:border-gray-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
+                        ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-tr-none' 
+                        : 'glass-effect text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-100 dark:border-gray-800'
                     } prose prose-slate dark:prose-invert max-w-none font-medium">
                         ${bubbleContent}
+                        ${isBot ? `
+                        <button onclick="copyToClipboard(\`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="copy-btn absolute -right-12 top-0 p-2 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-slate-100 dark:border-gray-700 text-slate-400 hover:text-blue-500 transition-all">
+                            <i class="bi bi-copy"></i>
+                        </button>` : ''}
                     </div>
                     <span class="text-[9px] mt-2 text-slate-400 uppercase font-black tracking-[0.2em] opacity-60">
                         ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

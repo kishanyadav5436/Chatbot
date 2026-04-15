@@ -1,33 +1,68 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
 
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --dark-glass-bg: rgba(17, 24, 39, 0.7);
+    --dark-glass-border: rgba(255, 255, 255, 0.05);
+}
+
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Outfit', sans-serif;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+}
+
+/* Glassmorphism Utility */
+.glass-effect {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.dark .glass-effect {
+    background-color: var(--dark-glass-bg);
+    border: 1px solid var(--dark-glass-border);
 }
 
 /* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(100, 116, 139, 0.1);
+    background: rgba(100, 116, 139, 0.2);
     border-radius: 20px;
 }
-.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
 
 /* Markdown Styles */
-.prose { font-size: 0.95rem; line-height: 1.7; }
-.prose p { margin-bottom: 0.75rem; }
+.prose { font-size: 0.95rem; line-height: 1.8; }
+.prose p { margin-bottom: 0.85rem; }
 .prose code { 
-    background: rgba(59, 130, 246, 0.1); 
+    background: rgba(59, 130, 246, 0.08); 
     color: #2563eb;
-    padding: 0.2rem 0.4rem; 
-    border-radius: 8px; 
-    font-weight: 700;
+    padding: 0.25rem 0.5rem; 
+    border-radius: 10px; 
+    font-weight: 600;
 }
-.dark .prose code { color: #60a5fa; background: rgba(255, 255, 255, 0.05); }
+.dark .prose code { color: #93c5fd; background: rgba(255, 255, 255, 0.05); }
+
+/* Message Animations */
+.message-animate {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* UI Elements */
+.active-chat {
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+}
+
 .active-chat::before {
     content: '';
     position: absolute;
@@ -35,15 +70,22 @@ body {
     width: 4px;
     background: #fff;
     border-radius: 0 4px 4px 0;
+    opacity: 0.8;
 }
 
-/* Input Focus */
-textarea:focus { box-shadow: none !important; }
+/* Floating Input Style */
+.input-container-floating {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+}
+.dark .input-container-floating {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
 
-/* Transitions */
-#sidebar {
-    box-shadow: 20px 0 60px rgba(0,0,0,0.02);
+/* Tooltips/Copy Button */
+.copy-btn {
+    opacity: 0;
+    transition: all 0.2s ease;
 }
-.dark #sidebar {
-    box-shadow: 20px 0 60px rgba(0,0,0,0.2);
-}
+.message-container:hover .copy-btn {
+    opacity: 1;
+}
