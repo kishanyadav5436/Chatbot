@@ -108,8 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
     
     function updateQueueUI() {
         document.getElementById('queue-typing')?.remove();
