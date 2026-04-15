@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auth Actions (Unchanged Logic)
+    // Auth Actions (Enhanced Split-Pane Logic)
     document.getElementById('login-form').onsubmit = (e) => {
         e.preventDefault();
         handleAuth('login', { email: document.getElementById('login-email').value, password: document.getElementById('login-password').value });
@@ -338,14 +338,40 @@ document.addEventListener('DOMContentLoaded', () => {
         handleAuth('register', { email: document.getElementById('register-email').value, password: document.getElementById('register-password').value });
     };
     document.getElementById('guest-login-btn').onclick = () => handleAuth('guest', {});
-    document.getElementById('show-register').onclick = () => {
-        document.getElementById('login-view').classList.add('hidden');
-        document.getElementById('register-view').classList.remove('hidden');
-    };
-    document.getElementById('show-login').onclick = () => {
-        document.getElementById('register-view').classList.add('hidden');
-        document.getElementById('login-view').classList.remove('hidden');
-    };
+
+    // Toggle Logic
+    const authContainer = document.getElementById('auth-container');
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const onboardingLogin = document.getElementById('onboarding-content-login');
+    const onboardingRegister = document.getElementById('onboarding-content-register');
+
+    function switchAuthMode(mode) {
+        if (mode === 'register') {
+            loginView.classList.add('hidden');
+            registerView.classList.remove('hidden');
+            onboardingLogin.classList.add('hidden');
+            onboardingRegister.classList.remove('hidden');
+            if (window.innerWidth >= 1024) {
+                authContainer.classList.add('lg:flex-row-reverse');
+                authContainer.classList.add('shadow-[0_0_50px_rgba(79,70,229,0.3)]'); // Indigo glow for register
+            }
+        } else {
+            registerView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            onboardingRegister.classList.add('hidden');
+            onboardingLogin.classList.remove('hidden');
+            if (window.innerWidth >= 1024) {
+                authContainer.classList.remove('lg:flex-row-reverse');
+                authContainer.classList.remove('shadow-[0_0_50px_rgba(79,70,229,0.3)]');
+            }
+        }
+    }
+
+    document.getElementById('show-register').onclick = () => switchAuthMode('register');
+    document.getElementById('show-login').onclick = () => switchAuthMode('login');
+    document.getElementById('show-register-desktop').onclick = () => switchAuthMode('register');
+    document.getElementById('show-login-desktop').onclick = () => switchAuthMode('login');
 
     async function handleAuth(type, body) {
         const spinner = document.getElementById(`${type}-spinner`);
