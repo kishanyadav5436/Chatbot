@@ -32,7 +32,10 @@ app.secret_key = JWT_SECRET
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+import re
+
 # Configure CORS - restricted to known frontend origins
+# Regex added to allow any vercel.app subdomain for deployment flexibility
 ALLOWED_ORIGINS = [
     "https://inclusionchatbot.vercel.app",
     "https://inclusionchatbot.vercel.app/",
@@ -42,7 +45,8 @@ ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:5500",
     "http://127.0.0.1:8000",
-    "http://127.0.0.1:5500"
+    "http://127.0.0.1:5500",
+    re.compile(r"https?://.*\.vercel\.app/?"), # Match all Vercel subdomains
 ]
 
 CORS(
@@ -70,14 +74,27 @@ def root():
 try:
     mongo_uri = os.getenv("MONGO_URI")
     if not mongo_uri:
-        logging.warning("MONGO_URI not set in .env! Using default localhost URI.")
-        mongo_uri = "mongodb://localhost:27017/"
+        logging.error("CRITICAL: MONGO_URI not set! Check your environment variables.")
+        # Fallback for local dev only if not on Render
+        if os.getenv("RENDER"):
+            db = None
+            client = None
+        else:
+            mongo_uri = "mongodb://localhost:27017/"
+            client = pymongo.MongoClient(mongo_uri)
+            db = client["inclusivity-chatbot"]
+            logging.info("MongoDB connected locally.")
+    else:
+        client = pymongo.MongoClient(mongo_uri)
+        db = client["inclusivity-chatbot"]
+        logging.info("MongoDB connected successfully.")
 
-    client = pymongo.MongoClient(mongo_uri)
-    db = client["inclusivity-chatbot"]
-    users_collection = db["users"]
-    conversations_collection = db["conversations"]
-    logging.info("MongoDB connected successfully.")
+    if db is not None:
+        users_collection = db["users"]
+        conversations_collection = db["conversations"]
+    else:
+        users_collection = None
+        conversations_collection = None
 except Exception as e:
     logging.error(f"Could not connect to MongoDB: {e}")
     client = None

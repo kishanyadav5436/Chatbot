@@ -401,19 +401,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            const data = await res.json();
+            
+            const contentType = res.headers.get("content-type");
+            let data;
+            
+            if (contentType && contentType.includes("application/json")) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                console.error('Non-JSON response received:', text);
+                throw new Error(res.status === 503 ? 'Database is currently unavailable. Please try again in 1 minute.' : 'Server returned a non-JSON response.');
+            }
+
             console.log('Auth response status:', res.status, data);
             
             if (res.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('email', data.email || body.email);
-                location.reload(); 
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('email', data.email || body.email || 'Guest');
+                    
+                    // Force UI update before reload to show immediate progress
+                    document.getElementById('authModal').classList.add('hidden');
+                    document.getElementById('chat-container').classList.remove('hidden');
+                    
+                    showToast('Success', 'Redirecting to chat...', 'success');
+                    setTimeout(() => location.reload(), 1000); 
+                } else {
+                    throw new Error('No token received from server.');
+                }
             } else { 
-                showToast('Auth Failed', data.msg || data.error || 'Error', 'error'); 
+                showToast('Auth Failed', data.msg || data.error || 'Invalid credentials', 'error'); 
             }
         } catch (e) { 
             console.error('Auth fetch error:', e);
-            showToast('Server Error', 'Could not reach backend. Possible CORS error or backend offline.', 'error'); 
+            showToast('Connection Error', e.message || 'Could not reach backend. Possible CORS error or backend offline.', 'error'); 
         }
         finally { spinner?.classList.add('hidden'); }
     }
