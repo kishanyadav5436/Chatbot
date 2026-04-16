@@ -6,6 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let userEmail = localStorage.getItem('email');
     let currentConversationId = localStorage.getItem('currentConversationId');
 
+    function updateAuthState() {
+        authToken = localStorage.getItem('token');
+        userEmail = localStorage.getItem('email');
+        if (authToken) {
+            document.documentElement.classList.add('is-authenticated');
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('chat-container').classList.remove('hidden');
+            
+            // Adjust sidebar if on desktop
+            if (window.innerWidth >= 1024) {
+                mainContent.style.marginLeft = '5rem';
+            }
+            
+            loadChatHistory();
+            if (currentConversationId) loadConversation(currentConversationId);
+        } else {
+            document.documentElement.classList.remove('is-authenticated');
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('chat-container').classList.add('hidden');
+            mainContent.style.marginLeft = '0';
+        }
+    }
+
     // Parse Token from URL (for Google OAuth callback)
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token');
@@ -420,12 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('email', data.email || body.email || 'Guest');
                     
-                    // Force UI update before reload to show immediate progress
-                    document.getElementById('authModal').classList.add('hidden');
-                    document.getElementById('chat-container').classList.remove('hidden');
+                    showToast('Success', 'Welcome to Inclusion AI', 'success');
                     
-                    showToast('Success', 'Redirecting to chat...', 'success');
-                    setTimeout(() => location.reload(), 1000); 
+                    // Directly update the UI and state without a reload
+                    updateAuthState();
                 } else {
                     throw new Error('No token received from server.');
                 }
@@ -474,17 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('settingsModal').classList.add('hidden');
     };
 
-    if (authToken) {
-        document.getElementById('authModal').classList.add('hidden');
-        document.getElementById('chat-container').classList.remove('hidden');
-        
-        // Initialize Global Sidebar (Narrow)
-        const globalSidebar = document.getElementById('global-sidebar');
-        if (window.innerWidth >= 1024) {
-            mainContent.style.marginLeft = '5rem'; // Match w-20 sidebar
-        }
-        
-        loadChatHistory();
-        if (currentConversationId) loadConversation(currentConversationId);
-    }
+    // Run initial auth check
+    updateAuthState();
 });

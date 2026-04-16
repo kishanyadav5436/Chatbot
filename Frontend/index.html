@@ -19,6 +19,17 @@
             }
         }
     </script>
+    <script>
+        // Check auth status as early as possible to prevent flicker
+        if (localStorage.getItem('token')) {
+            document.documentElement.classList.add('is-authenticated');
+        }
+    </script>
+    <style>
+        /* Force hidden states when authenticated to prevent flash of login screen */
+        .is-authenticated #authModal { display: none !important; }
+        .is-authenticated #chat-container { display: flex !important; }
+    </style>
 </head>
 <body class="bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
