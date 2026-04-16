@@ -6,6 +6,10 @@
     --glass-border: rgba(255, 255, 255, 0.3);
     --dark-glass-bg: rgba(17, 24, 39, 0.75);
     --dark-glass-border: rgba(255, 255, 255, 0.05);
+    --sidebar-bg: #171717;
+    --brand-green: #10a37f;
+    --user-bubble-bg: #ffffff;
+    --bot-bubble-bg: transparent;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -72,26 +76,81 @@ html { font-size: 14px; }
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
 
-/* Message Bubbles (Slothpilot Style) */
+/* Message Bubbles (Redesigned) */
 .bot-bubble {
-    background-color: #fff;
-    border: 1px solid #f1f5f9;
-    border-radius: 1.5rem;
-    border-top-left-radius: 0.25rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-.dark .bot-bubble {
-    background-color: #0f172a;
-    border-color: #1e293b;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 .user-bubble {
-    background: #6366f1;
-    color: #fff;
+    background-color: #f7f7f8;
+    color: #000;
+    border: 1px solid #e5e5e5;
     border-radius: 1.5rem;
-    border-bottom-right-radius: 0.25rem;
-    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
+.dark .user-bubble {
+    background-color: #2f2f2f;
+    color: #fff;
+    border-color: #3f3f3f;
+}
+
+/* Sidebar Specifics */
+.nav-item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite ease-in-out;
+}
+
+/* Code Blocks with Tabs */
+.code-block-container {
+    margin-top: 1.5rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #2d2d2d;
+}
+
+.code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2d2d2d;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.code-tabs {
+    display: flex;
+    gap: 1rem;
+}
+
+.code-tab {
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.code-tab.active {
+    opacity: 1;
+}
+
+.code-content {
+    padding: 1rem;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+}
+
 
 /* Action Icons below messages */
 .message-action-btn {
