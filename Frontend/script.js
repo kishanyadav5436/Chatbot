@@ -310,8 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => modelMenu.classList.add('hidden'), 200);
         });
 
-        // Header Icons
-        const headerButtons = document.querySelectorAll('header button:not(#new-chat-btn):not(#history-drawer-btn):not(#nav-theme-toggle)');
+        // Header Icons (Right side actions: Bookmark, Download, Share)
+        const headerButtons = document.querySelectorAll('header .flex:last-child button:not(#nav-theme-toggle)');
         
         // Bookmark
         headerButtons[0].onclick = () => {
@@ -373,9 +373,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    document.getElementById('history-drawer-btn').onclick = toggleSidebar;
-    document.getElementById('sidebar-close-btn').onclick = toggleSidebar;
-    document.getElementById('sidebar-overlay').onclick = toggleSidebar;
+        // --- Sidebar Toggles ---
+        
+        // Main Sidebar (Dark)
+        const mainSidebar = document.getElementById('main-sidebar');
+        const mainSidebarToggle = document.getElementById('main-sidebar-toggle');
+        
+        // Persistence
+        const sidebarState = localStorage.getItem('sidebarState');
+        if (sidebarState === 'closed') mainSidebar.classList.add('sidebar-closed');
+
+        mainSidebarToggle.onclick = () => {
+            const isClosed = mainSidebar.classList.toggle('sidebar-closed');
+            localStorage.setItem('sidebarState', isClosed ? 'closed' : 'open');
+        };
+
+        // History Sidebar (Drawer)
+        document.getElementById('history-drawer-btn').onclick = toggleSidebar;
+        document.getElementById('sidebar-close-btn').onclick = toggleSidebar;
+        document.getElementById('sidebar-overlay').onclick = toggleSidebar;
     document.getElementById('nav-theme-toggle').onclick = () => {
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
