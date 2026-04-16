@@ -270,11 +270,44 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sidebar.classList.contains('-translate-x-full')) toggleSidebar();
         };
 
-        document.getElementById('nav-marketplace-btn').onclick = () => showToast('Market Place', 'Inclusivity Store coming soon!', 'info');
-        document.getElementById('nav-saved-btn').onclick = () => showToast('Saved', 'Access your saved command library', 'info');
+        document.getElementById('nav-marketplace-btn').onclick = () => document.getElementById('marketplaceModal').classList.remove('hidden');
+        document.getElementById('nav-saved-btn').onclick = () => document.getElementById('savedCommandsModal').classList.remove('hidden');
         document.getElementById('nav-settings-btn-sidebar').onclick = () => document.getElementById('settingsModal').classList.remove('hidden');
 
-        // Brand Dropdown (Model Selection)
+        // Modal Close Logic
+        ['marketplaceModal', 'savedCommandsModal', 'settingsModal'].forEach(id => {
+            const modal = document.getElementById(id);
+            const closeBtn = document.getElementById(`close-${id.replace('Modal', '')}-btn`);
+            if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+            modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
+        });
+
+        // Saved Commands (Prompt Selection)
+        document.querySelectorAll('.prompt-item').forEach(item => {
+            item.onclick = () => {
+                const promptText = item.querySelector('.font-bold').innerText.replace(/"/g, '');
+                const input = document.getElementById('user-input');
+                input.value = promptText;
+                input.dispatchEvent(new Event('input'));
+                input.focus();
+                document.getElementById('savedCommandsModal').classList.add('hidden');
+                showToast('Prompts Loaded', 'Command added to input', 'success');
+            };
+        });
+
+        // Market Place (Tool Simulation)
+        document.querySelectorAll('#marketplaceModal button').forEach(btn => {
+            if (btn.innerText.includes('Install')) {
+                btn.onclick = () => {
+                    const toolName = btn.parentElement.querySelector('h4').innerText;
+                    btn.innerText = 'Installed';
+                    btn.classList.replace('bg-green-500', 'bg-slate-400');
+                    btn.classList.replace('bg-blue-500', 'bg-slate-400');
+                    showToast('Feature Enabled', `${toolName} added to your workspace`, 'success');
+                    setTimeout(() => document.getElementById('marketplaceModal').classList.add('hidden'), 500);
+                };
+            }
+        });
         const brandBtn = document.getElementById('brand-dropdown-btn');
         const modelMenu = document.getElementById('model-select-menu');
         brandBtn.onclick = (e) => {
