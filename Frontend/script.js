@@ -498,10 +498,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChatHistory();
     };
 
-    document.getElementById('logout-btn').onclick = () => {
+    const handleLogout = () => {
         localStorage.clear();
         location.reload();
     };
+
+    document.getElementById('logout-btn').onclick = handleLogout;
+    const logoutBtnSidebar = document.getElementById('logout-btn-sidebar');
+    if (logoutBtnSidebar) logoutBtnSidebar.onclick = handleLogout;
 
     // Auth
     document.getElementById('login-form').onsubmit = (e) => {
