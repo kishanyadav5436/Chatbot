@@ -270,9 +270,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sidebar.classList.contains('-translate-x-full')) toggleSidebar();
         };
 
-        document.getElementById('nav-marketplace-btn').onclick = () => document.getElementById('marketplaceModal').classList.remove('hidden');
-        document.getElementById('nav-saved-btn').onclick = () => document.getElementById('savedCommandsModal').classList.remove('hidden');
-        document.getElementById('nav-settings-btn-sidebar').onclick = () => document.getElementById('settingsModal').classList.remove('hidden');
+        document.getElementById('nav-marketplace-btn').onclick = () => {
+            document.getElementById('marketplaceModal').classList.remove('hidden');
+            // Close mobile sidebar if open
+            document.getElementById('main-sidebar').classList.remove('mobile-open');
+            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
+        };
+        document.getElementById('nav-saved-btn').onclick = () => {
+            document.getElementById('savedCommandsModal').classList.remove('hidden');
+            document.getElementById('main-sidebar').classList.remove('mobile-open');
+            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
+        };
+        document.getElementById('nav-settings-btn-sidebar').onclick = () => {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            document.getElementById('main-sidebar').classList.remove('mobile-open');
+            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
+        };
 
         // Modal Close Logic
         ['marketplaceModal', 'savedCommandsModal', 'settingsModal'].forEach(id => {
@@ -411,15 +424,44 @@ document.addEventListener('DOMContentLoaded', () => {
         // Main Sidebar (Dark)
         const mainSidebar = document.getElementById('main-sidebar');
         const mainSidebarToggle = document.getElementById('main-sidebar-toggle');
+        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
         
-        // Persistence
+        // Persistence (desktop only)
         const sidebarState = localStorage.getItem('sidebarState');
-        if (sidebarState === 'closed') mainSidebar.classList.add('sidebar-closed');
+        if (sidebarState === 'closed' && window.innerWidth >= 768) {
+            mainSidebar.classList.add('sidebar-closed');
+        }
 
+        // Desktop sidebar toggle
         mainSidebarToggle.onclick = () => {
             const isClosed = mainSidebar.classList.toggle('sidebar-closed');
             localStorage.setItem('sidebarState', isClosed ? 'closed' : 'open');
         };
+
+        // Mobile hamburger menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.onclick = () => {
+                mainSidebar.classList.toggle('mobile-open');
+                mobileSidebarOverlay.classList.toggle('active');
+            };
+        }
+
+        // Close mobile sidebar on overlay click (also handled inline in HTML, but belt-and-suspenders)
+        if (mobileSidebarOverlay) {
+            mobileSidebarOverlay.onclick = () => {
+                mainSidebar.classList.remove('mobile-open');
+                mobileSidebarOverlay.classList.remove('active');
+            };
+        }
+
+        // Close mobile sidebar on window resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                mainSidebar.classList.remove('mobile-open');
+                mobileSidebarOverlay.classList.remove('active');
+            }
+        });
 
         // History Sidebar (Drawer)
         document.getElementById('history-drawer-btn').onclick = toggleSidebar;
