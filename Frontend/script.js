@@ -507,6 +507,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnSidebar = document.getElementById('logout-btn-sidebar');
     if (logoutBtnSidebar) logoutBtnSidebar.onclick = handleLogout;
 
+    // Auth View Toggling
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const onboardingLogin = document.getElementById('onboarding-content-login');
+    const onboardingRegister = document.getElementById('onboarding-content-register');
+
+    const showRegister = () => {
+        loginView.classList.add('hidden');
+        registerView.classList.remove('hidden');
+        onboardingLogin.classList.add('hidden');
+        onboardingRegister.classList.remove('hidden');
+    };
+
+    const showLogin = () => {
+        registerView.classList.add('hidden');
+        loginView.classList.remove('hidden');
+        onboardingRegister.classList.add('hidden');
+        onboardingLogin.classList.remove('hidden');
+    };
+
+    document.getElementById('show-register').onclick = showRegister;
+    document.getElementById('show-register-desktop').onclick = showRegister;
+    document.getElementById('show-login').onclick = showLogin;
+    document.getElementById('show-login-desktop').onclick = showLogin;
+
     // Auth
     document.getElementById('login-form').onsubmit = (e) => {
         e.preventDefault();
