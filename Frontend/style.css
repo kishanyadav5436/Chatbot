@@ -2,14 +2,15 @@
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
 
 /* ===== CSS CUSTOM PROPERTIES ===== */
-:root {
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --dark-glass-bg: rgba(17, 24, 39, 0.75);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-highlight: rgba(255, 255, 255, 0.1);
+    --dark-glass-bg: rgba(0, 0, 0, 0.4);
     --dark-glass-border: rgba(255, 255, 255, 0.05);
     --sidebar-bg: #171717;
     --sidebar-width: 18rem;
     --brand-green: #10a37f;
+    --brand-blue: #3b82f6;
     --user-bubble-bg: #ffffff;
     --bot-bubble-bg: transparent;
     --safe-top: env(safe-area-inset-top, 0px);
@@ -18,6 +19,49 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --header-height: 3.5rem;
     --input-area-height: 7rem;
+}
+
+/* ===== NEW AUTH STYLES ===== */
+.auth-mesh-bg {
+    background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 0% 50%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 50%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 0% 100%, hsla(339,49%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 100%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 100%, hsla(253,16%,7%,1) 0, transparent 50%);
+    background-color: #0b0c10;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2.5rem;
+}
+
+.dark .glass-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.password-toggle:hover {
+    color: var(--brand-blue);
+    cursor: pointer;
+}
+
+.auth-input-group {
+    @apply relative border-b border-white/10 focus-within:border-blue-500 transition-all py-3;
+}
+
+.auth-button-primary {
+    @apply w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center gap-2;
+}
+
+.auth-button-secondary {
+    @apply flex items-center justify-center bg-white/5 p-4 rounded-2xl hover:bg-white/10 border border-white/5 transition-all group;
 }
 
 /* ===== BASE & RESET ===== */
