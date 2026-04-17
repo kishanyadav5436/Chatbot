@@ -507,30 +507,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnSidebar = document.getElementById('logout-btn-sidebar');
     if (logoutBtnSidebar) logoutBtnSidebar.onclick = handleLogout;
 
-    // Auth View Toggling
-    const loginView = document.getElementById('login-view');
-    const registerView = document.getElementById('register-view');
-    const onboardingLogin = document.getElementById('onboarding-content-login');
-    const onboardingRegister = document.getElementById('onboarding-content-register');
+    // Auth Slant Toggling
+    const authSlantContainer = document.querySelector('.auth-slant-container');
+    const loginToggleBtn = document.getElementById('login-toggle-btn');
+    const registerToggleBtn = document.getElementById('register-toggle-btn');
 
-    const showRegister = () => {
-        loginView.classList.add('hidden');
-        registerView.classList.remove('hidden');
-        onboardingLogin.classList.add('hidden');
-        onboardingRegister.classList.remove('hidden');
-    };
-
-    const showLogin = () => {
-        registerView.classList.add('hidden');
-        loginView.classList.remove('hidden');
-        onboardingRegister.classList.add('hidden');
-        onboardingLogin.classList.remove('hidden');
-    };
-
-    document.getElementById('show-register').onclick = showRegister;
-    document.getElementById('show-register-desktop').onclick = showRegister;
-    document.getElementById('show-login').onclick = showLogin;
-    document.getElementById('show-login-desktop').onclick = showLogin;
+    if (loginToggleBtn) loginToggleBtn.onclick = () => authSlantContainer.classList.remove('active');
+    if (registerToggleBtn) registerToggleBtn.onclick = () => authSlantContainer.classList.add('active');
 
     // Auth
     document.getElementById('login-form').onsubmit = (e) => {
@@ -541,7 +524,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         handleAuth('register', { email: document.getElementById('register-email').value, password: document.getElementById('register-password').value });
     };
-    document.getElementById('guest-login-btn').onclick = () => handleAuth('guest', {});
+    const guestBtn = document.getElementById('guest-login-btn');
+    if (guestBtn) guestBtn.onclick = () => handleAuth('guest', {});
 
     async function handleAuth(type, body) {
         const spinner = document.getElementById(`${type}-spinner`);

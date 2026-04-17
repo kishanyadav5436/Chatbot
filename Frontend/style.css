@@ -21,47 +21,136 @@
     --input-area-height: 7rem;
 }
 
-/* ===== NEW AUTH STYLES ===== */
-.auth-mesh-bg {
-    background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 0% 50%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 50%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 0% 100%, hsla(339,49%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 100%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 100%, hsla(253,16%,7%,1) 0, transparent 50%);
-    background-color: #0b0c10;
+/* ===== NEW AUTH SLANT STYLES ===== */
+#authModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
 }
 
-.glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 2.5rem;
+.auth-bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: #02040a;
 }
 
-.dark .glass-card {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+.auth-bg-image {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+    z-index: -1;
 }
 
-.password-toggle:hover {
-    color: var(--brand-blue);
-    cursor: pointer;
+.auth-slant-container {
+    position: relative;
+    width: 950px;
+    height: 600px;
+    background: rgba(10, 12, 18, 0.45);
+    backdrop-filter: blur(50px) saturate(220%);
+    -webkit-backdrop-filter: blur(50px) saturate(220%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4rem;
+    box-shadow: 0 50px 120px -30px rgba(0,0,0,0.8);
+    overflow: hidden;
+    z-index: 10;
 }
 
-.auth-input-group {
-    @apply relative border-b border-white/10 focus-within:border-blue-500 transition-all py-3;
+.form-box {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    color: #fff;
+    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
 }
 
+.form-box.login { left: 0; }
+.form-box.register { right: -50%; opacity: 0; }
+
+.auth-slant-container.active .form-box.login {
+    left: -50%;
+    opacity: 0;
+}
+
+.auth-slant-container.active .form-box.register {
+    right: 0;
+    opacity: 1;
+    z-index: 2;
+}
+
+/* THE SLANT PANEL */
+.toggle-box {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(67, 56, 202, 0.8));
+    backdrop-filter: blur(30px) saturate(150%);
+    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.auth-slant-container.active .toggle-box {
+    left: 0;
+    clip-path: polygon(0 0, 80% 0, 100% 100%, 0% 100%);
+    border-left: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.toggle-panel {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    padding: 0 40px;
+}
+
+.toggle-left { transform: translateX(-200%); }
+.auth-slant-container.active .toggle-left { transform: translateX(0); }
+.toggle-right { transform: translateX(0); }
+.auth-slant-container.active .toggle-right { transform: translateX(200%); }
+
+/* BUTTONS & INPUTS */
 .auth-button-primary {
-    @apply w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center gap-2;
+    @apply w-full py-4 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-[0.3em] border border-white/30 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-2xl;
 }
 
-.auth-button-secondary {
-    @apply flex items-center justify-center bg-white/5 p-4 rounded-2xl hover:bg-white/10 border border-white/5 transition-all group;
+.slant-btn.transparent {
+    @apply py-4 px-12 bg-transparent border-2 border-white/50 hover:bg-white hover:text-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all active:scale-95 shadow-lg;
+}
+
+.auth-input-line {
+    @apply relative border-b-2 border-white/20 focus-within:border-blue-500 transition-all py-3;
+}
+
+.circular-social-btn {
+    @apply w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 border border-white/20 hover:bg-white hover:text-slate-900 transition-all active:scale-90 shadow-xl backdrop-blur-xl;
+}
+
+.pill-social-btn {
+    @apply flex-1 py-3 rounded-2xl bg-white/10 border border-white/20 hover:bg-white text-white hover:text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl backdrop-blur-xl;
 }
 
 /* ===== BASE & RESET ===== */
