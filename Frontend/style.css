@@ -194,6 +194,14 @@ html { font-size: 14px; }
 
 /* Mobile: sidebar becomes a full-screen overlay drawer */
 @media (max-width: 767px) {
+    #main-sidebar-toggle {
+        display: none !important;
+    }
+    
+    #mobile-menu-btn {
+        display: flex !important;
+    }
+
     #main-sidebar {
         position: fixed !important;
         top: 0;
@@ -282,6 +290,22 @@ html { font-size: 14px; }
     /* Show hamburger on mobile */
     #main-sidebar-toggle {
         display: flex !important;
+    }
+
+    #new-chat-btn span {
+        display: none;
+    }
+
+    #new-chat-btn {
+        padding: 0.5rem !important;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.75rem !important;
+    }
+
+    /* Hide secondary action buttons on mobile */
+    .header-secondary-btn {
+        display: none !important;
     }
 
     /* Smaller header buttons on mobile */
