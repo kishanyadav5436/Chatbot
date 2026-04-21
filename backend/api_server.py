@@ -47,21 +47,27 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500"
 ]
 
-CORS(
-    app,
-    origins=ALLOWED_ORIGINS,
-    supports_credentials=True,
-    allow_headers=["Content-Type", "x-auth-token", "Authorization", "Accept"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    max_age=600  # Cache preflight for 10 mins
-)
+# Initialize CORS more explicitly to ensure preflight coverage
+CORS(app, resources={r"/api/*": {
+    "origins": ALLOWED_ORIGINS,
+    "supports_credentials": True,
+    "allow_headers": ["Content-Type", "x-auth-token", "Authorization", "Accept"],
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}}, max_age=600)
+
+@app.before_request
+def handle_preflight():
+    """Explicitly handle preflight OPTIONS requests to avoid 405/429 errors."""
+    if request.method == "OPTIONS":
+        return "", 200
 
 # Rate Limiting
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://"
+    storage_uri="memory://",
+    request_filter=lambda: request.method == "OPTIONS" # Never rate-limit preflight checks
 )
 
 @app.route('/', methods=['GET'])
@@ -513,7 +519,7 @@ def is_admin(email):
         return True
     return email in ADMIN_EMAILS
 
-@app.route("/api/admin/login", methods=["POST"])
+@app.route("/api/admin/login", methods=["POST", "OPTIONS"])
 def admin_login():
     """Specific admin login endpoint."""
     data = request.json or {}
