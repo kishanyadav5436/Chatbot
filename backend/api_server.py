@@ -118,7 +118,7 @@ google = oauth.register(
 )
 
 # --- BOT RESPONSE LOGIC (Hybrid ML/LLM) ---
-def get_bot_response(classification, user_message): 
+def get_bot_response(classification, user_message, conversation_context=None): 
     responses = {
         "greet": "Hello! How can I help you learn about inclusion today?",
         "goodbye": "Bye! Feel free to ask more questions anytime.",
@@ -143,6 +143,9 @@ def get_bot_response(classification, user_message):
                 "You are a highly knowledgeable and friendly inclusion and diversity expert. "
                 "Always provide clear, encouraging, and informative answers. Keep your responses concise."
             )
+            
+            if conversation_context:
+                llm_context += f"\n\nHere is the recent conversation history for context: {conversation_context}"
             
             llm_reply = llm_service.get_generative_response(
                 prompt=user_message,
@@ -217,8 +220,8 @@ def chat(user_id, email, is_guest):
         # Step 3: Get context for LLM (optional enhancement)
         context_for_llm = conv_map.get_context_for_llm() if intent == "nlu_fallback" else None
         
-        # Step 4: Get the response (passing the original message for LLM fallback)
-        bot_reply = get_bot_response(intent, message)
+        # Step 4: Get the response (passing the original message for LLM fallback and context)
+        bot_reply = get_bot_response(intent, message, conversation_context=context_for_llm)
         llm_available = llm_service.is_available()
         logging.info(f"LLM available: {llm_available}, Reply length: {len(bot_reply) if bot_reply else 0}, Preview: '{bot_reply[:100] if bot_reply else 'EMPTY'}'")
 

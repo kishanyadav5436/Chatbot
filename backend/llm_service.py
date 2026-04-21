@@ -40,13 +40,9 @@ class LLMService:
         if not self.is_available():
             return "AI service unavailable."
         
-        try:
-            # Offload sync Gemini call to thread → Flask stays responsive
-            loop = asyncio.get_event_loop()
-            return loop.run_in_executor(None, self._generate_content_sync, prompt, context)
-        except RuntimeError:
-            # Fallback for pure sync contexts
-            return self._generate_content_sync(prompt, context)
+        # Directly call the sync implementation.
+        # Flask (via Gunicorn/Waitress) handles concurrent request threads.
+        return self._generate_content_sync(prompt, context)
     
     def _generate_content_sync(self, prompt, context):
         """
