@@ -47,32 +47,30 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500"
 ]
 
-# Initialize CORS more explicitly to ensure preflight coverage
-CORS(app, resources={r"/api/*": {
-    "origins": ALLOWED_ORIGINS,
-    "supports_credentials": True,
-    "allow_headers": ["Content-Type", "x-auth-token", "Authorization", "Accept"],
-    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-}}, max_age=600)
+# Simplified CORS for debugging - allows all handled by headers with credentials
+CORS(app, supports_credentials=True)
 
-@app.before_request
-def handle_preflight():
-    """Explicitly handle preflight OPTIONS requests to avoid 405/429 errors."""
-    if request.method == "OPTIONS":
-        return "", 200
+# Removed manual preflight handler to let flask-cors handle it
 
-# Rate Limiting
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",
-    request_filter=lambda: request.method == "OPTIONS" # Never rate-limit preflight checks
-)
+# Rate Limiting (Temporarily disabled for debugging)
+# limiter = Limiter(
+#     get_remote_address,
+#     app=app,
+#     default_limits=["200 per day", "50 per hour"],
+#     storage_uri="memory://",
+#     request_filter=lambda: request.method == "OPTIONS" # Never rate-limit preflight checks
+# )
+class FakeLimiter:
+    def limit(self, *args, **kwargs):
+        return lambda f: f
+limiter = FakeLimiter()
 
 @app.route('/', methods=['GET'])
 def root():
-    return jsonify({"status": "Chatbot API running on port 5056", "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history"]})
+    return jsonify({
+        "status": "Chatbot API running on port 5056", 
+        "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
+    })
 
 # --- DATABASE CONNECTION ---
 try:
@@ -592,5 +590,11 @@ def append_data(user_id, email, is_guest):
 
 
 if __name__ == "__main__":
+    # Log all registered routes for debugging
+    print("\n--- REGISTERED ROUTES ---")
+    for rule in app.url_map.iter_rules():
+        print(f"{rule.endpoint}: {rule} ({rule.methods})")
+    print("-------------------------\n")
+    
     port = int(os.environ.get("PORT", 5056))
     app.run(host="0.0.0.0", port=port, debug=False)
