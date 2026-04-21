@@ -516,9 +516,12 @@ def is_admin(email):
         return True
     return email in ADMIN_EMAILS
 
-@app.route("/api/admin/login", methods=["POST"])
+@app.route("/api/admin/login", methods=["POST", "OPTIONS"])
 def admin_login():
     """Specific admin login endpoint."""
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+        
     data = request.json or {}
     username = data.get("username")
     password = data.get("password")
