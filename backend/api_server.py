@@ -118,8 +118,37 @@ google = oauth.register(
     resource_server_kwargs={'verify_iss': False} 
 )
 
+def retrieve_relevant_data(query, db):
+    """Retrieve relevant data from MongoDB datasets using full-text search."""
+    if not db:
+        return ""
+        
+    knowledge_parts = []
+    try:
+        for col_name in ['dei_dataset', 'dei_principles']:
+            if col_name not in db.list_collection_names():
+                continue
+            col = db[col_name]
+            # Ensure text index is created on all fields
+            try:
+                col.create_index([("$**", pymongo.TEXT)], background=True)
+            except Exception:
+                pass
+                
+            # Perform text search
+            docs = list(col.find({"$text": {"$search": query}}).limit(3))
+            for doc in docs:
+                doc.pop("_id", None)  # Remove object IDs
+                knowledge_parts.append(str(doc))
+    except Exception as e:
+        logging.error(f"RAG Retrieval Error: {e}")
+        
+    if knowledge_parts:
+        return "Here is some extracted knowledge from our DEI datasets to help you answer:\n" + "\n".join(knowledge_parts)
+    return ""
+
 # --- BOT RESPONSE LOGIC (Hybrid ML/LLM) ---
-def get_bot_response(classification, user_message, conversation_context=None): 
+def get_bot_response(classification, user_message, conversation_context=None, db=None): 
     responses = {
         "greet": "Hello! How can I help you learn about inclusion today?",
         "goodbye": "Bye! Feel free to ask more questions anytime.",
@@ -140,11 +169,19 @@ def get_bot_response(classification, user_message, conversation_context=None):
         if llm_service.is_available():
             logging.info(f"ML Fallback: Using Gemini for dynamic response to intent '{classification}'")
             
+            # 1. Fetch relevant RAG data from MongoDB
+            rag_context = retrieve_relevant_data(user_message, db)
+            
+            # 2. Build the LLM Context
             llm_context = (
                 "You are a highly knowledgeable and friendly inclusion and diversity expert. "
                 "Always provide clear, encouraging, and informative answers. Keep your responses concise."
             )
             
+            if rag_context:
+                logging.info("RAG Context found and injected into LLM prompt.")
+                llm_context += f"\n\n{rag_context}"
+                
             if conversation_context:
                 llm_context += f"\n\nHere is the recent conversation history for context: {conversation_context}"
             
@@ -222,7 +259,7 @@ def chat(user_id, email, is_guest):
         context_for_llm = conv_map.get_context_for_llm() if intent == "nlu_fallback" else None
         
         # Step 4: Get the response (passing the original message for LLM fallback and context)
-        bot_reply = get_bot_response(intent, message, conversation_context=context_for_llm)
+        bot_reply = get_bot_response(intent, message, conversation_context=context_for_llm, db=db)
         llm_available = llm_service.is_available()
         logging.info(f"LLM available: {llm_available}, Reply length: {len(bot_reply) if bot_reply else 0}, Preview: '{bot_reply[:100] if bot_reply else 'EMPTY'}'")
 
