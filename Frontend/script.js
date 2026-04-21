@@ -126,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="message-action-btn" onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Listen"><i class="bi bi-volume-up text-lg"></i></button>
                             <button class="message-action-btn" onclick="copyToClipboard(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy"><i class="bi bi-copy text-lg"></i></button>
                             <button class="message-action-btn" title="Regenerate" onclick="showToast('Info', 'Regeneration coming soon', 'info')"><i class="bi bi-arrow-repeat text-lg"></i></button>
-                            <button class="message-action-btn" title="Like"><i class="bi bi-hand-thumbs-up text-lg"></i></button>
-                            <button class="message-action-btn" title="Dislike"><i class="bi bi-hand-thumbs-down text-lg"></i></button>
+                            <button class="message-action-btn" title="Like" onclick="showToast('Feedback', 'Thanks for the positive feedback!', 'success')"><i class="bi bi-hand-thumbs-up text-lg"></i></button>
+                            <button class="message-action-btn" title="Dislike" onclick="showToast('Feedback', 'We will improve this response.', 'info')"><i class="bi bi-hand-thumbs-down text-lg"></i></button>
                         </div>
                     ` : ''}
                 </div>
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Header Icons (Right side actions: Bookmark, Download, Share)
-        const headerButtons = document.querySelectorAll('header .flex:last-child button:not(#nav-theme-toggle)');
+        const headerButtons = document.querySelectorAll('.header-secondary-btn');
         
         // Bookmark
         headerButtons[0].onclick = () => {
@@ -452,7 +452,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Share
-        headerButtons[2].onclick = () => showToast('Share', 'Secure link generated for sharing', 'info');
+        if (headerButtons.length > 2) {
+            headerButtons[2].onclick = () => showToast('Share', 'Secure link generated for sharing', 'info');
+        }
+
+        const attachBtn = document.getElementById('attach-btn');
+        if (attachBtn) {
+            attachBtn.onclick = () => showToast('Attachment', 'File attachments coming soon!', 'info');
+        }
 
         document.getElementById('view-plans-btn').onclick = () => showToast('Plans', 'Premium plans unlock next-gen empathy models', 'info');
         
