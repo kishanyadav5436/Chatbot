@@ -195,6 +195,10 @@
                     <i class="bi bi-gear"></i>
                     <span>Settings</span>
                 </button>
+                <button id="nav-about-btn-sidebar" class="nav-item w-full flex items-center gap-3 p-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all text-sm">
+                    <i class="bi bi-info-circle"></i>
+                    <span>About</span>
+                </button>
             </nav>
 
             <!-- Upgrade Card -->
@@ -275,6 +279,10 @@
                     <button id="new-chat-btn" class="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-gray-800 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-900 transition-all text-xs font-bold text-slate-700 dark:text-slate-300">
                         <i class="bi bi-plus-lg"></i>
                         <span>New chat</span>
+                    </button>
+                    <button id="clear-chat-btn" class="flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-900/40 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-xs font-bold text-red-500 hidden md:flex">
+                        <i class="bi bi-trash3"></i>
+                        <span>Clear Chat</span>
                     </button>
                 </div>
 
@@ -439,6 +447,79 @@
         </div>
     </div>
 
+    <!-- About Modal -->
+    <div id="aboutModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden border border-white/10 transform scale-95 transition-transform duration-300">
+            <div class="p-8 border-b border-slate-50 dark:border-gray-800 flex justify-between items-center bg-indigo-50/50 dark:bg-indigo-900/20">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                        <i class="bi bi-robot text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Inclusivity AI</h3>
+                        <p class="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest">Version 1.0 Premium</p>
+                    </div>
+                </div>
+                <button id="close-about-btn" class="w-12 h-12 flex items-center justify-center hover:bg-white dark:hover:bg-gray-800 rounded-2xl transition-all shadow-sm"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="prose dark:prose-invert max-w-none">
+                    <p class="text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+                        Inclusivity AI is an advanced conversational model designed to foster understanding, equity, and belonging in professional and social environments.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700">
+                            <i class="bi bi-shield-check text-2xl text-green-500 mb-2 block"></i>
+                            <h4 class="font-bold text-sm mb-1 uppercase tracking-wider">Unbiased Training</h4>
+                            <p class="text-xs text-slate-500">Fine-tuned on diverse datasets to minimize structural biases.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700">
+                            <i class="bi bi-globe-americas text-2xl text-blue-500 mb-2 block"></i>
+                            <h4 class="font-bold text-sm mb-1 uppercase tracking-wider">Global Empathy</h4>
+                            <p class="text-xs text-slate-500">Understands cultural nuances and promotes inclusive language.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden border border-red-500/30 transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-red-950/40">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-terminal-fill text-red-500 text-xl"></i>
+                    <h3 class="text-xl font-black tracking-widest uppercase text-white">System Admin</h3>
+                </div>
+                <button id="close-admin-btn" class="text-white/50 hover:text-white transition-colors pointer-events-auto"><i class="bi bi-x-lg text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4 pointer-events-auto">
+                <div class="bg-black/50 rounded-xl p-4 font-mono text-[10px] text-green-400 mb-6 h-32 overflow-y-auto" id="admin-log">
+                    &gt; System initialized...<br>
+                    &gt; Awaiting command...<br>
+                </div>
+                
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-white/10 pb-2">Data Operations</h4>
+                <div class="grid grid-cols-1 gap-3 hover:gap-4 transition-all">
+                    <button id="admin-load-data-btn" class="w-full flex items-center justify-between p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 text-white transition-all group">
+                        <div class="flex items-center gap-3">
+                            <i class="bi bi-database-down text-blue-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider">Reload Root Data</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-white/30 group-hover:text-white transition-colors"></i>
+                    </button>
+                    <button id="admin-append-data-btn" class="w-full flex items-center justify-between p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 text-white transition-all group">
+                        <div class="flex items-center gap-3">
+                            <i class="bi bi-database-add text-green-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider">Append New Data</span>
+                        </div>
+                        <i class="bi bi-chevron-right text-white/30 group-hover:text-white transition-colors"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

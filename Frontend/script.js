@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authToken) {
             document.documentElement.classList.add('is-authenticated');
             document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authModal').style.display = 'none';
             document.getElementById('chat-container').classList.remove('hidden');
             
             // Update sidebar profile
@@ -30,7 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             document.documentElement.classList.remove('is-authenticated');
             document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('authModal').style.display = 'flex';
             document.getElementById('chat-container').classList.add('hidden');
+            
+            // Clear current conversation
+            currentConversationId = null;
+            const cb = document.getElementById('chat-box');
+            if (cb) cb.innerHTML = '';
         }
     }
 
@@ -287,13 +294,75 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('mobile-sidebar-overlay').classList.remove('active');
         };
 
+        document.getElementById('nav-about-btn-sidebar').onclick = () => {
+            const aboutModal = document.getElementById('aboutModal');
+            if (aboutModal) {
+                aboutModal.classList.remove('hidden');
+                setTimeout(() => aboutModal.classList.remove('opacity-0'), 10);
+            }
+            document.getElementById('main-sidebar').classList.remove('mobile-open');
+            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
+        };
+
         // Modal Close Logic
-        ['marketplaceModal', 'savedCommandsModal', 'settingsModal'].forEach(id => {
+        ['marketplaceModal', 'savedCommandsModal', 'settingsModal', 'aboutModal', 'adminModal'].forEach(id => {
             const modal = document.getElementById(id);
+            if (!modal) return;
             const closeBtn = document.getElementById(`close-${id.replace('Modal', '')}-btn`);
-            if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-            modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
+            if (closeBtn) closeBtn.onclick = () => {
+                modal.classList.add('opacity-0');
+                if(!id.includes('about') && !id.includes('admin')) modal.classList.add('hidden');
+                else setTimeout(() => modal.classList.add('hidden'), 300);
+            };
+            modal.onclick = (e) => { 
+                if (e.target === modal || e.target.classList.contains('backdrop-blur-md')) {
+                    modal.classList.add('opacity-0');
+                    if(!id.includes('about') && !id.includes('admin')) modal.classList.add('hidden');
+                    else setTimeout(() => modal.classList.add('hidden'), 300);
+                } 
+            };
         });
+
+        // Admin functionality
+        const logToAdmin = (msg) => {
+            const el = document.getElementById('admin-log');
+            if (el) {
+                el.innerHTML += `&gt; ${msg}<br>`;
+                el.scrollTop = el.scrollHeight;
+            }
+        };
+
+        const adminLoadBtn = document.getElementById('admin-load-data-btn');
+        if (adminLoadBtn) {
+            adminLoadBtn.onclick = async () => {
+                logToAdmin('Requesting root data reload...');
+                try {
+                    const res = await fetch(`${API_URL}/api/admin/load-data`, {
+                        method: 'POST',
+                        headers: { 'x-auth-token': authToken }
+                    });
+                    const data = await res.json();
+                    if (res.ok) logToAdmin(`Success: ${data.status}`);
+                    else logToAdmin(`Error: ${data.error || 'Failed'}`);
+                } catch (e) { logToAdmin('Error: Network failed'); }
+            };
+        }
+
+        const adminAppendBtn = document.getElementById('admin-append-data-btn');
+        if (adminAppendBtn) {
+            adminAppendBtn.onclick = async () => {
+                logToAdmin('Requesting new data append...');
+                try {
+                    const res = await fetch(`${API_URL}/api/admin/append-data`, {
+                        method: 'POST',
+                        headers: { 'x-auth-token': authToken }
+                    });
+                    const data = await res.json();
+                    if (res.ok) logToAdmin(`Success: ${data.status}`);
+                    else logToAdmin(`Error: ${data.error || 'Failed'}`);
+                } catch (e) { logToAdmin('Error: Network failed'); }
+            };
+        }
 
         // Saved Commands (Prompt Selection)
         document.querySelectorAll('.prompt-item').forEach(item => {
@@ -474,7 +543,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        sendMessage(userInput.value);
+        const text = userInput.value;
+        if (text.trim() === '/admin') {
+            const adminModal = document.getElementById('adminModal');
+            if (adminModal) {
+                adminModal.classList.remove('hidden');
+                setTimeout(() => adminModal.classList.remove('opacity-0'), 10);
+            }
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            return;
+        }
+        sendMessage(text);
     });
 
     userInput.addEventListener('input', function() {
@@ -497,6 +577,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('welcome-screen').style.display = 'block';
         loadChatHistory();
     };
+
+    const clearChatBtn = document.getElementById('clear-chat-btn');
+    if (clearChatBtn) {
+        clearChatBtn.onclick = async () => {
+            if (!currentConversationId) return showToast('Info', 'No active chat to clear.', 'info');
+            if (confirm('Are you sure you want to clear this chat?')) {
+                try {
+                    const res = await fetch(`${API_URL}/api/chat/reset`, {
+                        method: 'POST',
+                        headers: { 'x-auth-token': authToken }
+                    });
+                    if (res.ok) {
+                        chatBox.innerHTML = '';
+                        document.getElementById('welcome-screen').style.display = 'block';
+                        showToast('Cleared', 'Chat context has been reset.', 'success');
+                    }
+                } catch (e) {
+                    showToast('Error', 'Failed to clear chat.', 'error');
+                }
+            }
+        };
+    }
 
     const handleLogout = () => {
         localStorage.clear();
