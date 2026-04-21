@@ -1,0 +1,88 @@
+# Inclusivity AI Chatbot - Presentation Questions and Answers
+
+## I. Project Overview & General Questions
+
+Q1: What is the core problem that "Inclusivity AI Chatbot" aims to solve?
+A1: The project addresses the lack of accessible and interactive education on Diversity, Equity, and Inclusion (DEI). Traditional resources are often static and non-interactive. Our chatbot provides a personalized, multilingual conversational experience to educate users on DEI concepts.
+
+Q2: What is the unique selling point (USP) of your project?
+A2: Our USP is the hybrid AI approach—combining traditional ML intent classification with modern LLM (Google Gemini) generative responses—along with support for 12 languages and voice-based interaction, making it highly inclusive and accessible.
+
+Q3: Who are the target users for this application?
+A3: Educational institutions, corporate HR departments for sensitivity training, NGOs, and individuals looking to understand and apply DEI principles in their daily lives.
+
+---
+
+## II. Frontend Development
+
+Q4: What technologies were used to build the frontend, and why?
+A4: We used vanilla HTML5, CSS3, and JavaScript, enhanced with Bootstrap. This was chosen for performance and reliability. We avoided heavy frameworks to keep the interaction fast and minimize loading times.
+
+Q5: How did you implement the multi-language support on the frontend?
+A5: We implemented a settings module that allows users to select from 12 languages. The UI dynamically adapts its layout (using Bootstrap's responsiveness) and sends the language preference to the backend to tailor the AI responses.
+
+Q6: How does the voice input feature work?
+A6: We integrated the Web Speech API (supported by modern browsers like Chrome). It captures user audio, converts it to text locally on the client side, and then sends that text to our backend API for processing.
+
+Q7: How did you ensure the application is responsive?
+A7: We used a Mobile-First approach with Bootstrap's grid system and custom CSS media queries. This ensures a seamless experience across desktops, tablets, and smartphones.
+
+---
+
+## III. Backend Development
+
+Q8: Why did you choose Flask as your backend framework?
+A8: Flask is a lightweight WSGI web application framework that provides the flexibility to integrate custom AI models and microservices easily. It allows for fast development of RESTful APIs, which was ideal for our project.
+
+Q9: How is user authentication handled?
+A9: We use JSON Web Tokens (JWT) for secure session management. When a user logs in, the backend generates a token that the frontend stores and sends with every subsequent request. We also support Guest Login for lower barriers to entry.
+
+Q10: Which database are you using and why?
+A10: We use MongoDB (a NoSQL database). It was chosen because its document-oriented structure is perfect for storing conversation history and user preferences, which are inherently flexible and can change over time.
+
+Q11: How do you handle session persistence?
+A11: Conversation history is saved in MongoDB linked to the user's ID. When a user logs in, the History Module fetches their past interactions, allowing them to resume conversations across different devices.
+
+---
+
+## IV. AI & Machine Learning
+
+Q12: Explain the "Hybrid AI Pipeline" used in the chatbot.
+A12: The pipeline has three layers:
+1. Intent Classification: Uses SpaCy and Scikit-learn (TF-IDF + SGDClassifier) to identify what the user wants (e.g., greetings, DEI definitions).
+2. Semantic Search: If the intent is complex, we use Sentence Transformers to search our curated DEI dataset for relevant context.
+3. LLM Generation: We use Google Gemini API to generate a natural, conversational response based on the identified intent and retrieved context.
+
+Q13: What is "TF-IDF" and how is it used in your project?
+A13: TF-IDF (Term Frequency-Inverse Document Frequency) is a numerical statistic used to reflect how important a word is to a document in a collection. We use it in our Intent Classifier to vectorize text messages so the machine learning model can process them.
+
+Q14: How do you handle cases where the AI doesn't understand the user (Fallback)?
+A14: We've implemented a confidence threshold in our `IntentClassifier`. If the confidence score is below 50%, the system defaults to an `nlu_fallback` intent, which triggers a polite request for clarification or uses the Gemini LLM to provide a general helpful response.
+
+---
+
+## V. Future Scope & Challenges
+
+Q15: What was the biggest technical challenge during development?
+A15: Integrating the ML models with the Flask API while maintaining low latency. We solved this by using a shared instance of the classifier and optimizing the spaCy preprocessing pipeline.
+
+Q16: How do you plan to scale this project in the future?
+A16: Future enhancements include developing native mobile apps (Flutter/React Native), adding an admin dashboard for dataset management, and fine-tuning our own LLM model specifically on DEI datasets to reduce reliance on external APIs like Google Gemini.
+
+---
+
+## VI. Data Processing
+
+Q17: How is data processed in this project?
+A17: Data processing follows a 4-step workflow:
+1. **Source Collection**: We use structured data in YAML format for intent training (`nlu.yml`) and CSV format for DEI knowledge.
+2. **Text Cleaning**: We use the spaCy library to perform lemmatization (reducing words to their root form) and remove "stop words" (common words like 'the', 'is') and punctuation.
+3. **Vectorization**: The cleaned text is converted into numerical data using the TF-IDF (Term Frequency-Inverse Document Frequency) method, allowing the machine learning model to understand word importance.
+4. **Database Storage**: The structured data is loaded into MongoDB using our `data_loader.py` script for fast retrieval during user conversations.
+
+Q18: What is Lemmatization, and why is it important for your chatbot?
+A18: Lemmatization is the process of grouping together the inflected forms of a word so they can be analyzed as a single item (e.g., "running" becomes "run"). It is important because it helps our chatbot understand the core meaning of a user's query regardless of how they phrase it, improving accuracy across 12 different languages.
+
+Q19: How do you handle the training of the Intent Classifier?
+A19: The `nlp_service.py` script performs the training. It reads the examples from the `nlu.yml` file, applies the spaCy preprocessing, and then fits an SGDClassifier (Stochastic Gradient Descent) model. We use a "log_loss" function to enable confidence scoring, so the chatbot knows when it is guessing and can fallback if it's unsure.
+
