@@ -69,6 +69,7 @@ limiter = FakeLimiter()
 def root():
     return jsonify({
         "status": "Chatbot API running on port 5056", 
+        "version": "1.1-debug",
         "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
     })
 
