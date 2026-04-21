@@ -39,15 +39,12 @@ import re
 # Regex added to allow any vercel.app subdomain for deployment flexibility
 ALLOWED_ORIGINS = [
     "https://inclusionchatbot.vercel.app",
-    "https://inclusionchatbot.vercel.app/",
     "https://www.inclusionchatbot.vercel.app",
     "https://chatbot-3-hpx2.onrender.com",
-    "https://chatbot-3-hpx2.onrender.com/",
     "http://localhost:8000",
     "http://localhost:5500",
     "http://127.0.0.1:8000",
-    "http://127.0.0.1:5500",
-    re.compile(r"https?://.*\.vercel\.app/?"), # Match all Vercel subdomains
+    "http://127.0.0.1:5500"
 ]
 
 CORS(
@@ -516,12 +513,9 @@ def is_admin(email):
         return True
     return email in ADMIN_EMAILS
 
-@app.route("/api/admin/login", methods=["POST", "OPTIONS"])
+@app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     """Specific admin login endpoint."""
-    if request.method == "OPTIONS":
-        return jsonify({"status": "ok"}), 200
-        
     data = request.json or {}
     username = data.get("username")
     password = data.get("password")
