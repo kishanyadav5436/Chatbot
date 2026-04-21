@@ -484,17 +484,26 @@ def load_data(user_id, email, is_guest):
     if not is_admin(email):
         return jsonify({"error": "Admin only"}), 403
     
-    sys.path.append(os.path.dirname(__file__))
-    from data_loader import load_dei_csv, load_principles_csv, load_nlu_yaml, get_mongo_client, append_data_from_folder
-    
-    db = get_mongo_client()
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    
-    load_dei_csv(db, os.path.join(data_dir, 'DEI Dataset.csv'))
-    load_principles_csv(db, os.path.join(data_dir, 'diversity_equity_inclusion_data.csv'))
-    load_nlu_yaml(db, os.path.join(data_dir, 'nlu.yml'))
-    
-    return jsonify({"status": "Data reloaded successfully"})
+    try:
+        sys.path.append(os.path.dirname(__file__))
+        from data_loader import load_dei_csv, load_principles_csv, load_nlu_yaml, get_mongo_client
+        
+        db = get_mongo_client()
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        
+        if os.path.exists(os.path.join(data_dir, 'DEI Dataset.csv')):
+            load_dei_csv(db, os.path.join(data_dir, 'DEI Dataset.csv'))
+        
+        if os.path.exists(os.path.join(data_dir, 'diversity_equity_inclusion_data.csv')):
+            load_principles_csv(db, os.path.join(data_dir, 'diversity_equity_inclusion_data.csv'))
+            
+        if os.path.exists(os.path.join(data_dir, 'nlu.yml')):
+            load_nlu_yaml(db, os.path.join(data_dir, 'nlu.yml'))
+            
+        return jsonify({"status": "Data reloaded where files existed"})
+    except Exception as e:
+        logging.error(f"Error loading data: {e}")
+        return jsonify({"error": f"Failed: {str(e)}"}), 500
 
 
 @app.route("/api/admin/append-data", methods=["POST"])
@@ -504,15 +513,26 @@ def append_data(user_id, email, is_guest):
     if not is_admin(email):
         return jsonify({"error": "Admin only"}), 403
     
-    sys.path.append(os.path.dirname(__file__))
-    from data_loader import append_data_from_folder, get_mongo_client
-    
-    db = get_mongo_client()
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    
-    append_data_from_folder(db, data_dir)
-    
-    return jsonify({"status": "Data appended successfully from data/ folder"})
+    try:
+        sys.path.append(os.path.dirname(__file__))
+        from data_loader import load_dei_csv, load_principles_csv, load_nlu_yaml, get_mongo_client
+        
+        db = get_mongo_client()
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        
+        if os.path.exists(os.path.join(data_dir, 'DEI Dataset.csv')):
+            load_dei_csv(db, os.path.join(data_dir, 'DEI Dataset.csv'))
+        
+        if os.path.exists(os.path.join(data_dir, 'diversity_equity_inclusion_data.csv')):
+            load_principles_csv(db, os.path.join(data_dir, 'diversity_equity_inclusion_data.csv'))
+            
+        if os.path.exists(os.path.join(data_dir, 'nlu.yml')):
+            load_nlu_yaml(db, os.path.join(data_dir, 'nlu.yml'))
+            
+        return jsonify({"status": "Data appended successfully where files existed"})
+    except Exception as e:
+        logging.error(f"Error appending data: {e}")
+        return jsonify({"error": f"Failed: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
