@@ -69,7 +69,7 @@ limiter = FakeLimiter()
 def root():
     return jsonify({
         "status": "Chatbot API running on port 5056", 
-        "version": "1.4-production",
+        "version": "1.5-production",
         "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
     })
 
@@ -539,6 +539,7 @@ def admin_login():
     return jsonify({"error": "Invalid admin credentials"}), 401
 
 @app.route("/api/admin/load-data", methods=["POST"])
+@cross_origin()
 @token_required
 def load_data(user_id, email, is_guest):
     """Reload data from files (admin only)."""
@@ -568,6 +569,7 @@ def load_data(user_id, email, is_guest):
 
 
 @app.route("/api/admin/append-data", methods=["POST"])
+@cross_origin()
 @token_required
 def append_data(user_id, email, is_guest):
     """Append data from data/ folder (admin only, handles duplicates)."""
