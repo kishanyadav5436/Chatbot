@@ -616,13 +616,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnSidebar = document.getElementById('logout-btn-sidebar');
     if (logoutBtnSidebar) logoutBtnSidebar.onclick = handleLogout;
 
-    // Auth Slant Toggling
-    const authSlantContainer = document.querySelector('.auth-slant-container');
+    // Auth Layout Toggling
+    const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
+    const authTitle = document.getElementById('auth-title');
     const loginToggleBtn = document.getElementById('login-toggle-btn');
     const registerToggleBtn = document.getElementById('register-toggle-btn');
 
-    if (loginToggleBtn) loginToggleBtn.onclick = () => authSlantContainer.classList.remove('active');
-    if (registerToggleBtn) registerToggleBtn.onclick = () => authSlantContainer.classList.add('active');
+    if (loginToggleBtn) {
+        loginToggleBtn.onclick = () => {
+            registerSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            if (authTitle) authTitle.innerText = 'Welcome Back';
+        };
+    }
+    
+    if (registerToggleBtn) {
+        registerToggleBtn.onclick = () => {
+            loginSection.classList.add('hidden');
+            registerSection.classList.remove('hidden');
+            if (authTitle) authTitle.innerText = 'Join Inclusivity AI';
+        };
+    }
 
     // Auth
     document.getElementById('login-form').onsubmit = (e) => {

@@ -32,125 +32,21 @@
     background: transparent !important;
 }
 
-.auth-bg-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: #02040a;
+#auth-card {
+    animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.auth-bg-image {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.9;
-    z-index: -1;
+@keyframes scaleIn {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
-.auth-slant-container {
-    position: relative;
-    width: 950px;
-    height: 600px;
-    background: rgba(10, 12, 18, 0.45);
-    backdrop-filter: blur(50px) saturate(220%);
-    -webkit-backdrop-filter: blur(50px) saturate(220%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 4rem;
-    box-shadow: 0 50px 120px -30px rgba(0,0,0,0.8);
-    overflow: hidden;
-    z-index: 10;
-}
-
-.form-box {
-    position: absolute;
-    top: 0;
-    width: 50%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px;
-    color: #fff;
-    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-}
-
-.form-box.login { left: 0; }
-.form-box.register { right: -50%; opacity: 0; }
-
-.auth-slant-container.active .form-box.login {
-    left: -50%;
-    opacity: 0;
-}
-
-.auth-slant-container.active .form-box.register {
-    right: 0;
-    opacity: 1;
-    z-index: 2;
-}
-
-/* THE SLANT PANEL */
-.toggle-box {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(67, 56, 202, 0.8));
-    backdrop-filter: blur(30px) saturate(150%);
-    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-    clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.auth-slant-container.active .toggle-box {
-    left: 0;
-    clip-path: polygon(0 0, 80% 0, 100% 100%, 0% 100%);
-    border-left: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.toggle-panel {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-    transition: .6s cubic-bezier(0.4, 0, 0.2, 1);
-    text-align: center;
-    padding: 0 40px;
-}
-
-.toggle-left { transform: translateX(-200%); }
-.auth-slant-container.active .toggle-left { transform: translateX(0); }
-.toggle-right { transform: translateX(0); }
-.auth-slant-container.active .toggle-right { transform: translateX(200%); }
-
-/* BUTTONS & INPUTS */
 .auth-button-primary {
-    @apply w-full py-4 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-[0.3em] border border-white/30 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-2xl;
-}
-
-.slant-btn.transparent {
-    @apply py-4 px-12 bg-transparent border-2 border-white/50 hover:bg-white hover:text-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all active:scale-95 shadow-lg;
+    @apply w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-600/20 transition-all active:scale-95 flex items-center justify-center gap-2;
 }
 
 .auth-input-line {
-    @apply relative border-b-2 border-white/20 focus-within:border-blue-500 transition-all py-3;
-}
-
-.circular-social-btn {
-    @apply w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 border border-white/20 hover:bg-white hover:text-slate-900 transition-all active:scale-90 shadow-xl backdrop-blur-xl;
-}
-
-.pill-social-btn {
-    @apply flex-1 py-3 rounded-2xl bg-white/10 border border-white/20 hover:bg-white text-white hover:text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl backdrop-blur-xl;
+    @apply relative border-b-2 border-white/10 focus-within:border-indigo-500 transition-all py-3;
 }
 
 /* ===== BASE & RESET ===== */

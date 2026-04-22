@@ -38,93 +38,102 @@
 <body class="bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
     
-    <div id="authModal" class="min-h-screen flex items-center justify-center py-10 px-4 transition-all duration-700">
+    <div id="authModal" class="min-h-screen flex items-center justify-center p-6 transition-all duration-700">
         <!-- BACKGROUND LAYER -->
-        <div class="auth-bg-overlay"></div>
-        <img src="space-bg.png" class="auth-bg-image" alt="Nebula Background">
+        <div class="fixed inset-0 z-0 overflow-hidden">
+            <div class="absolute inset-0 bg-slate-950"></div>
+            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-blob"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-blob [animation-delay:2s]"></div>
+        </div>
         
-        <!-- AUTH CONTAINER -->
-        <div id="auth-container" class="auth-slant-container">
-            <div class="toggle-box">
-                <div class="toggle-panel toggle-left">
-                    <img src="chatbot-avatar.png" class="w-32 h-32 mb-8 rounded-[2rem] shadow-2xl border border-white/20 animate-bounce-slow" alt="Bot">
-                    <h1 class="text-4xl font-black text-white tracking-tighter mb-4">JOIN US!</h1>
-                    <p class="text-blue-100/60 text-sm font-medium mb-8">Already have an account?</p>
-                    <button class="slant-btn transparent" id="login-toggle-btn">Sign In</button>
+        <!-- AUTH CARD -->
+        <div id="auth-card" class="relative z-10 w-full max-w-[450px] bg-white/5 backdrop-blur-2xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl overflow-hidden transition-all duration-500">
+            
+            <!-- Branding -->
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center text-white mb-6 shadow-xl animate-bounce-slow">
+                    <i class='bx bxs-bot text-3xl'></i>
                 </div>
-                <div class="toggle-panel toggle-right">
-                    <img src="chatbot-avatar.png" class="w-32 h-32 mb-8 rounded-[2rem] shadow-2xl border border-white/20 animate-bounce-slow" alt="Bot">
-                    <h1 class="text-4xl font-black text-white tracking-tighter mb-4">WELCOME<br>BACK!</h1>
-                    <p class="text-blue-100/60 text-sm font-medium mb-8">Don't have an account?</p>
-                    <button class="slant-btn transparent" id="register-toggle-btn">Sign Up</button>
-                </div>
+                <h2 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2 opacity-80">Inclusivity AI</h2>
+                <h1 id="auth-title" class="text-3xl font-black text-white tracking-tight">Welcome Back</h1>
             </div>
 
-            <div class="form-box login">
-                <div class="mb-8 text-center">
-                    <img src="planet-icon.png" class="w-24 h-24 mx-auto mb-4 animate-pulse" alt="Planet">
-                    <h2 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-2 opacity-80">AI Chatbot for Inclusion Awareness</h2>
-                    <h1 class="text-4xl font-black text-white tracking-tight">Login</h1>
-                </div>
-                
-                <form id="login-form" class="space-y-6">
-                    <div class="auth-input-line">
-                        <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-transparent outline-none py-2 text-sm font-medium pr-10 text-white placeholder:text-white/20" required>
-                        <i class='bx bxs-envelope absolute right-2 top-1/2 -translate-y-1/2 text-white/30'></i>
+            <!-- Login Form -->
+            <div id="login-section" class="space-y-6">
+                <form id="login-form" class="space-y-5">
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Email Address</label>
+                        <div class="relative">
+                            <i class='bx bxs-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors'></i>
+                            <input type="email" id="login-email" placeholder="name@company.com" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-medium" required>
+                        </div>
                     </div>
-                    <div class="auth-input-line">
-                        <input type="password" id="login-password" placeholder="Password" class="w-full bg-transparent outline-none py-2 text-sm font-medium pr-10 text-white placeholder:text-white/20" required>
-                        <i class='bx bxs-lock-alt absolute right-2 top-1/2 -translate-y-1/2 text-white/30 cursor-pointer' onclick="togglePasswordVisibility('login-password', this)"></i>
-                    </div>
-                    
-                    <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        <label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
-                            <input type="checkbox" class="w-4 h-4 rounded-md border-white/10 bg-white/5 checked:bg-blue-500">
-                            Remember me
-                        </label>
-                        <a href="#" class="hover:text-blue-400 transition-colors">Forgot?</a>
+                    <div class="group">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                            <a href="#" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">Forgot?</a>
+                        </div>
+                        <div class="relative">
+                            <i class='bx bxs-lock-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors'></i>
+                            <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-medium" required>
+                            <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors" onclick="togglePasswordVisibility('login-password', this)">
+                                <i class='bx bxs-show text-lg'></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <button type="submit" class="auth-button-primary mt-4">
-                        SIGN IN <span id="login-spinner" class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full hidden"></span>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-600/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        Sign In <span id="login-spinner" class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full hidden"></span>
                     </button>
-
-                    <div class="relative py-4 flex items-center justify-center">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                        <span class="relative px-4 bg-transparent text-[9px] font-black text-white/30 uppercase tracking-widest">Social Login</span>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button type="button" class="circular-social-btn flex-1">
-                            <i class='bx bxl-google text-2xl'></i>
-                        </button>
-                        <button type="button" id="guest-login-btn" class="pill-social-btn flex-[2]">
-                            GUEST ACCESS
-                        </button>
-                    </div>
                 </form>
+
+                <div class="relative py-4 flex items-center justify-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                    <span class="relative px-4 bg-transparent text-[9px] font-black text-slate-500 uppercase tracking-widest">Other Options</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                        <i class='bx bxl-google text-lg'></i> Google
+                    </button>
+                    <button type="button" id="guest-login-btn" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                        Guest Access
+                    </button>
+                </div>
+
+                <p class="text-center text-[11px] text-slate-400 font-medium pt-4">
+                    Don't have an account? 
+                    <button id="register-toggle-btn" class="text-indigo-400 font-black uppercase tracking-widest hover:text-white transition-colors ml-1">Sign Up</button>
+                </p>
             </div>
 
-            <div class="form-box register">
-                <div class="mb-8 text-center">
-                    <h2 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-2 opacity-80">Join Inclusivity AI</h2>
-                    <h1 class="text-4xl font-black text-white tracking-tight">Register</h1>
-                    <p class="text-xs text-slate-400 mt-2">Start your journey today</p>
-                </div>
+            <!-- Register Form -->
+            <div id="register-section" class="space-y-6 hidden">
+                <form id="register-form" class="space-y-5">
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Email Address</label>
+                        <div class="relative">
+                            <i class='bx bxs-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors'></i>
+                            <input type="email" id="register-email" placeholder="name@company.com" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-medium" required>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1 text-left">Password</label>
+                        <div class="relative">
+                            <i class='bx bxs-lock-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors'></i>
+                            <input type="password" id="register-password" placeholder="••••••••" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-medium" required>
+                        </div>
+                    </div>
 
-                <form id="register-form" class="space-y-6">
-                    <div class="auth-input-line">
-                        <input type="email" id="register-email" placeholder="Email Address" class="w-full bg-transparent outline-none py-2 text-sm font-medium pr-10 text-white placeholder:text-white/20" required>
-                        <i class='bx bxs-envelope absolute right-2 top-1/2 -translate-y-1/2 text-white/30'></i>
-                    </div>
-                    <div class="auth-input-line">
-                        <input type="password" id="register-password" placeholder="Password" class="w-full bg-transparent outline-none py-2 text-sm font-medium pr-10 text-white placeholder:text-white/20" required>
-                        <i class='bx bxs-lock-alt absolute right-2 top-1/2 -translate-y-1/2 text-white/30 cursor-pointer' onclick="togglePasswordVisibility('register-password', this)"></i>
-                    </div>
-                    <button type="submit" class="auth-button-primary mt-4">
-                        CREATE ACCOUNT <span id="register-spinner" class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full hidden"></span>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-600/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        Create Account <span id="register-spinner" class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full hidden"></span>
                     </button>
                 </form>
+
+                <p class="text-center text-[11px] text-slate-400 font-medium pt-4">
+                    Already have an account? 
+                    <button id="login-toggle-btn" class="text-indigo-400 font-black uppercase tracking-widest hover:text-white transition-colors ml-1">Sign In</button>
+                </p>
             </div>
         </div>
     </div>
