@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; background-color: #020617 !important; color: #f1f5f9 !important; }
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(40px);
@@ -17,17 +17,23 @@
             animation: fadeIn 0.8s ease-out;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0% { transform: translateY(100vh) rotate(0); } 100% { transform: translateY(-100vh) rotate(360deg); } }
-        .particle { position: absolute; background: white; border-radius: 50%; animation: float linear infinite; opacity: 0.2; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(-120vh) rotate(360deg); } }
+        .particle { position: absolute; background: white; border-radius: 50%; animation: float linear infinite; opacity: 0.3; box-shadow: 0 0 10px 2px rgba(255,255,255,0.2); }
+        .animate-blob { animation: blob 10s infinite; filter: blur(100px); opacity: 0.5; }
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
     </style>
 </head>
-<body class="bg-slate-950 min-h-screen flex items-center justify-center p-6 text-slate-100">
+<body class="min-h-screen flex items-center justify-center p-6 text-slate-100">
 
     <!-- ANTIGRAVITY BG -->
-    <div id="particle-field" class="fixed inset-0 z-0 pointer-events-none"></div>
+    <div id="particle-field" class="fixed inset-0 z-0 pointer-events-none" style="background-color: #020617;"></div>
     <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/30 rounded-full blur-[120px] animate-blob"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/30 rounded-full blur-[120px] animate-blob [animation-delay:2s]"></div>
     </div>
 
     <!-- AUTH CARD -->

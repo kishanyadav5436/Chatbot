@@ -693,28 +693,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Antigravity Background Particles
     function initParticles() {
-        const containers = ['particles-1', 'particles-2', 'particles-3'];
+        const containers = ['particles-1', 'particles-2'];
         containers.forEach((id, index) => {
             const container = document.getElementById(id);
             if (!container) return;
-            const count = 20 + (index * 15);
+            const count = 50 + (index * 30); // More particles
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
+                const opacity = index === 0 ? 0.4 : 0.2;
                 p.className = `absolute rounded-full bg-white animate-float-particle`;
-                const size = Math.random() * (4 - index) + 1;
-                const left = Math.random() * 100;
-                const top = Math.random() * 100;
-                const delay = Math.random() * 10;
-                const duration = 15 + Math.random() * 20 + (index * 10);
-                const opacity = 0.1 + Math.random() * 0.4;
-                
+                const size = Math.random() * (3 - index) + 1;
                 p.style.width = `${size}px`;
                 p.style.height = `${size}px`;
-                p.style.left = `${left}%`;
-                p.style.top = `${top}%`;
-                p.style.opacity = opacity;
-                p.style.animationDelay = `${delay}s`;
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.top = `${Math.random() * 100}%`; // Distributed across full screen
+                p.style.setProperty('--p-opacity', opacity);
+                
+                // Randomize animation
+                const duration = 15 + Math.random() * 25;
+                const delay = Math.random() * -duration; // Negative delay to start mid-animation
                 p.style.animationDuration = `${duration}s`;
+                p.style.animationDelay = `${delay}s`;
+                
+                // Add twinkle to some
+                if (Math.random() > 0.7) {
+                    p.classList.add('animate-twinkle');
+                }
                 
                 container.appendChild(p);
             }
