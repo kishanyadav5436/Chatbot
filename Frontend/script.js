@@ -690,6 +690,37 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     updateAuthState();
     attachIconListeners();
+
+    // Antigravity Background Particles
+    function initParticles() {
+        const containers = ['particles-1', 'particles-2', 'particles-3'];
+        containers.forEach((id, index) => {
+            const container = document.getElementById(id);
+            if (!container) return;
+            const count = 20 + (index * 15);
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = `absolute rounded-full bg-white animate-float-particle`;
+                const size = Math.random() * (4 - index) + 1;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const delay = Math.random() * 10;
+                const duration = 15 + Math.random() * 20 + (index * 10);
+                const opacity = 0.1 + Math.random() * 0.4;
+                
+                p.style.width = `${size}px`;
+                p.style.height = `${size}px`;
+                p.style.left = `${left}%`;
+                p.style.top = `${top}%`;
+                p.style.opacity = opacity;
+                p.style.animationDelay = `${delay}s`;
+                p.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(p);
+            }
+        });
+    }
+    initParticles();
 });
 
 // Utility for password visibility
