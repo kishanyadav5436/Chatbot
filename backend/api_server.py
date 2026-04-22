@@ -47,8 +47,8 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500"
 ]
 
-# Simplified CORS for debugging - allows all handled by headers with credentials
-CORS(app, supports_credentials=True)
+# Configure CORS - restricted to known frontend origins
+CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}}, supports_credentials=True)
 
 # Removed manual preflight handler to let flask-cors handle it
 
@@ -69,7 +69,7 @@ limiter = FakeLimiter()
 def root():
     return jsonify({
         "status": "Chatbot API running on port 5056", 
-        "version": "1.1-debug",
+        "version": "1.2-production",
         "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
     })
 
@@ -521,15 +521,22 @@ def is_admin(email):
 @app.route("/api/admin/login", methods=["POST", "OPTIONS"])
 def admin_login():
     """Specific admin login endpoint."""
+    if request.method == "OPTIONS":
+        return "", 204
+        
     data = request.json or {}
     username = data.get("username")
     password = data.get("password")
     
+    logging.info(f"Admin login attempt for username: {username}")
+    
     if username == "kishan" and password == "9236076711@123":
+        logging.info("Admin login successful for 'kishan'")
         # Generate token with special admin email
         token = generate_app_token(ObjectId(), "kishan.admin@inclusivity.ai")
         return jsonify({"token": token, "email": "kishan.admin@inclusivity.ai"})
         
+    logging.warning(f"Failed admin login attempt for username: {username}")
     return jsonify({"error": "Invalid admin credentials"}), 401
 
 @app.route("/api/admin/load-data", methods=["POST"])

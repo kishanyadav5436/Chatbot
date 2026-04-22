@@ -118,10 +118,17 @@
                         logToAdmin(`Admin access granted to ${data.email}`);
                     }, 500);
                 } else {
+                    const data = await res.json().catch(() => ({}));
+                    if (res.status === 404) {
+                        errorMsg.innerText = 'Error 404: Admin endpoint not found on server. Please redeploy.';
+                    } else {
+                        errorMsg.innerText = data.error || 'Invalid credentials.';
+                    }
                     errorMsg.classList.remove('hidden');
                 }
             } catch (err) {
-                errorMsg.innerText = 'Network error during login.';
+                console.error('Login Error:', err);
+                errorMsg.innerText = 'Connection error. Check if backend is alive / CORS.';
                 errorMsg.classList.remove('hidden');
             }
         });
