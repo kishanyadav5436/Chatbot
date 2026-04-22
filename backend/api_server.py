@@ -69,7 +69,7 @@ limiter = FakeLimiter()
 def root():
     return jsonify({
         "status": "Chatbot API running on port 5056", 
-        "version": "1.2-production",
+        "version": "1.3-production",
         "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
     })
 
@@ -518,11 +518,9 @@ def is_admin(email):
         return True
     return email in ADMIN_EMAILS
 
-@app.route("/api/admin/login", methods=["POST", "OPTIONS"])
+@app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     """Specific admin login endpoint."""
-    if request.method == "OPTIONS":
-        return "", 204
         
     data = request.json or {}
     username = data.get("username")
