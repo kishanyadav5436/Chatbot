@@ -3,7 +3,7 @@ import sys
 import logging
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, redirect, url_for
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import pymongo
@@ -69,7 +69,7 @@ limiter = FakeLimiter()
 def root():
     return jsonify({
         "status": "Chatbot API running on port 5056", 
-        "version": "1.3-production",
+        "version": "1.4-production",
         "routes": ["/api/auth/guest", "/api/chat", "/api/chat/history", "/api/admin/login"]
     })
 
@@ -519,6 +519,7 @@ def is_admin(email):
     return email in ADMIN_EMAILS
 
 @app.route("/api/admin/login", methods=["POST"])
+@cross_origin()
 def admin_login():
     """Specific admin login endpoint."""
         
