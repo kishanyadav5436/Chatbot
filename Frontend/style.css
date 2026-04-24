@@ -22,6 +22,36 @@
     --input-area-height: 7rem;
 }
 
+/* ===== TYPING INDICATOR ===== */
+.typing-indicator {
+    display: inline-flex;
+    gap: 5px;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    align-items: center;
+    width: fit-content;
+    margin-top: 1rem;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #6366f1;
+    border-radius: 50%;
+    animation: typing-pulse 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-pulse {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+
 /* ===== NEW AUTH SLANT STYLES ===== */
 #authModal {
     position: fixed;
@@ -782,21 +812,73 @@ html { font-size: 14px; }
 /* ===== PROSE / MARKDOWN ===== */
 .prose {
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.7;
     word-break: break-word;
     overflow-wrap: break-word;
+    color: inherit;
 }
 @media (min-width: 768px) { .prose { line-height: 1.8; } }
 
-.prose p { margin-bottom: 0.85rem; }
+.prose p { margin-bottom: 1rem; }
+.prose p:last-child { margin-bottom: 0; }
+
+.prose strong { color: #818cf8; font-weight: 800; }
+
+.prose ul, .prose ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.prose ul { list-style-type: disc; }
+.prose ol { list-style-type: decimal; }
+
+.prose li { margin-bottom: 0.5rem; }
+
+.prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prose th {
+    background: rgba(99, 102, 241, 0.1);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 700;
+    color: #818cf8;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.prose td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .prose code {
     background: rgba(59, 130, 246, 0.08);
-    color: #4f46e5;
+    color: #818cf8;
     padding: 0.25rem 0.5rem;
     border-radius: 10px;
     font-weight: 600;
     font-size: 0.85em;
     word-break: break-all;
+}
+
+.prose pre {
+    background: #0f172a;
+    padding: 1.5rem;
+    border-radius: 1.2rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-family: 'JetBrains Mono', monospace;
 }
 .dark .prose code { color: #818cf8; background: rgba(255, 255, 255, 0.05); }
 

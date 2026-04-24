@@ -127,6 +127,11 @@ def retrieve_relevant_data(query, db):
         
     knowledge_parts = []
     try:
+        # 1. Clean the query (remove common filler words for better text search)
+        stop_words = {"what", "is", "how", "does", "the", "a", "an", "tell", "me", "about", "defined", "meaning"}
+        clean_query = " ".join([word for word in query.lower().split() if word not in stop_words])
+        if not clean_query: clean_query = query # Fallback if empty
+        
         for col_name in ['dei_dataset', 'dei_principles']:
             if col_name not in db.list_collection_names():
                 continue
@@ -137,20 +142,33 @@ def retrieve_relevant_data(query, db):
             except Exception:
                 pass
                 
-            # Perform text search
-            docs = list(col.find({"$text": {"$search": query}}).limit(3))
+            # Perform text search with the cleaned query
+            docs = list(col.find({"$text": {"$search": clean_query}}).limit(3))
             for doc in docs:
                 doc.pop("_id", None)  # Remove object IDs
-                knowledge_parts.append(str(doc))
+                # Format nicely for the LLM
+                parts = [f"{k}: {v}" for k, v in doc.items() if v]
+                knowledge_parts.append(" | ".join(parts))
+                
     except Exception as e:
         logging.error(f"RAG Retrieval Error: {e}")
         
     if knowledge_parts:
-        return "Here is some extracted knowledge from our DEI datasets to help you answer:\n" + "\n".join(knowledge_parts)
+        # Deduplicate and limit
+        unique_knowledge = list(set(knowledge_parts))[:5]
+        return "Knowledge Base Context:\n" + "\n".join(unique_knowledge)
     return ""
 
 # --- BOT RESPONSE LOGIC (Hybrid ML/LLM) ---
-def get_bot_response(classification, user_message, conversation_context=None, db=None): 
+def get_bot_response(classification, user_message, conversation_context=None, db=None, language='en'): 
+    # Language mapping for LLM instructions
+    lang_names = {
+        'en': 'English', 'hi': 'Hindi', 'es': 'Spanish', 'fr': 'French',
+        'de': 'German', 'bn': 'Bengali', 'mr': 'Marathi', 'te': 'Telugu',
+        'ta': 'Tamil', 'gu': 'Gujarati', 'kn': 'Kannada', 'ml': 'Malayalam'
+    }
+    target_lang = lang_names.get(language, 'English')
+
     responses = {
         "greet": "Hello! How can I help you learn about inclusion today?",
         "goodbye": "Bye! Feel free to ask more questions anytime.",
@@ -177,7 +195,8 @@ def get_bot_response(classification, user_message, conversation_context=None, db
             # 2. Build the LLM Context
             llm_context = (
                 "You are a highly knowledgeable and friendly inclusion and diversity expert. "
-                "Always provide clear, encouraging, and informative answers. Keep your responses concise."
+                "Always provide clear, encouraging, and informative answers. Keep your responses concise. "
+                f"IMPORTANT: You MUST respond in {target_lang}."
             )
             
             if rag_context:
@@ -240,6 +259,7 @@ def chat(user_id, email, is_guest):
 
     message = request.json.get("message")
     conversation_id_str = request.json.get("conversationId")
+    language = request.json.get("language", "en")
     if not message or not message.strip():
         return jsonify({"error": "No message provided"}), 400
 
@@ -261,7 +281,7 @@ def chat(user_id, email, is_guest):
         context_for_llm = conv_map.get_context_for_llm() if intent == "nlu_fallback" else None
         
         # Step 4: Get the response (passing the original message for LLM fallback and context)
-        bot_reply = get_bot_response(intent, message, conversation_context=context_for_llm, db=db)
+        bot_reply = get_bot_response(intent, message, conversation_context=context_for_llm, db=db, language=language)
         llm_available = llm_service.is_available()
         logging.info(f"LLM available: {llm_available}, Reply length: {len(bot_reply) if bot_reply else 0}, Preview: '{bot_reply[:100] if bot_reply else 'EMPTY'}'")
 
@@ -596,6 +616,102 @@ def append_data(user_id, email, is_guest):
     except Exception as e:
         logging.error(f"Error appending data: {e}")
         return jsonify({"error": f"Failed: {str(e)}"}), 500
+
+
+@app.route("/api/admin/data", methods=["GET"])
+@cross_origin()
+@token_required
+def get_admin_data(user_id, email, is_guest):
+    """Retrieve DEI data with basic search/pagination."""
+    if not is_admin(email):
+        return jsonify({"error": "Admin only"}), 403
+    
+    try:
+        search = request.args.get("search", "")
+        limit = int(request.args.get("limit", 50))
+        
+        query = {}
+        if search:
+            query = {"$or": [
+                {"Topic": {"$regex": search, "$options": "i"}},
+                {"Content": {"$regex": search, "$options": "i"}},
+                {"Keywords": {"$regex": search, "$options": "i"}}
+            ]}
+            
+        data = list(db["dei_dataset"].find(query).limit(limit))
+        for item in data:
+            item["_id"] = str(item["_id"])
+            
+        return jsonify({"data": data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/data", methods=["POST"])
+@cross_origin()
+@token_required
+def add_admin_data(user_id, email, is_guest):
+    """Add a new DEI record."""
+    if not is_admin(email):
+        return jsonify({"error": "Admin only"}), 403
+    
+    try:
+        new_record = request.json
+        if not new_record.get("Topic") or not new_record.get("Content"):
+            return jsonify({"error": "Topic and Content are required"}), 400
+            
+        result = db["dei_dataset"].insert_one(new_record)
+        return jsonify({"status": "Success", "id": str(result.inserted_id)}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/data/<record_id>", methods=["PUT", "DELETE"])
+@cross_origin()
+@token_required
+def manage_admin_data(user_id, email, is_guest, record_id):
+    """Update or delete a DEI record."""
+    if not is_admin(email):
+        return jsonify({"error": "Admin only"}), 403
+    
+    try:
+        if request.method == "DELETE":
+            db["dei_dataset"].delete_one({"_id": ObjectId(record_id)})
+            return jsonify({"status": "Deleted"})
+        
+        updated_data = request.json
+        updated_data.pop("_id", None)
+        db["dei_dataset"].update_one({"_id": ObjectId(record_id)}, {"$set": updated_data})
+        return jsonify({"status": "Updated"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/stats", methods=["GET"])
+@cross_origin()
+@token_required
+def get_admin_stats(user_id, email, is_guest):
+    """Get system-wide statistics."""
+    if not is_admin(email):
+        return jsonify({"error": "Admin only"}), 403
+    
+    try:
+        total_users = users_collection.count_documents({})
+        total_convos = conversations_collection.count_documents({})
+        
+        # Approximate message count
+        pipeline = [
+            {"$project": {"count": {"$size": "$messages"}}},
+            {"$group": {"_id": None, "total": {"$sum": "$count"}}}
+        ]
+        msg_result = list(conversations_collection.aggregate(pipeline))
+        total_messages = msg_result[0]["total"] if msg_result else 0
+        
+        return jsonify({
+            "users": total_users,
+            "conversations": total_convos,
+            "messages": total_messages,
+            "status": "Online"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

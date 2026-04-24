@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let authToken = localStorage.getItem('token');
     let userEmail = localStorage.getItem('email');
     let currentConversationId = localStorage.getItem('currentConversationId');
+    let currentLanguage = localStorage.getItem('language') || 'en';
 
     function updateAuthState() {
         authToken = localStorage.getItem('token');
@@ -104,30 +105,29 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="max-w-4xl mx-auto flex items-start gap-5 w-full px-4">
                 <!-- Avatar -->
                 <div class="flex-shrink-0 mt-1">
-                    <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-sm">
+                    <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-lg avatar-ring">
                         <img src="${avatarUrl}" class="w-full h-full object-cover">
                     </div>
                 </div>
 
                 <!-- Message Content -->
                 <div class="flex-1 min-w-0">
-                    <h4 class="font-black text-xs uppercase tracking-widest mb-1 text-slate-500 dark:text-slate-400">
+                    <h4 class="font-black text-[10px] uppercase tracking-[0.2em] mb-2 text-indigo-500 dark:text-indigo-400">
                         ${isBot ? 'Inclusivity AI' : (userEmail ? userEmail.split('@')[0] : 'You')}
                     </h4>
-                    <div class="${isBot ? 'bot-bubble' : 'user-bubble p-4'}">
-                        <div class="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed text-sm">
+                    <div class="${isBot ? 'bot-bubble' : 'user-bubble p-5 shadow-xl'}">
+                        <div class="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed">
                             ${messageContent}
                         </div>
                     </div>
                     
                     <!-- Action Bar (Bot Only) -->
                     ${isBot ? `
-                        <div class="flex items-center gap-3 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button class="message-action-btn" onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Listen"><i class="bi bi-volume-up text-lg"></i></button>
-                            <button class="message-action-btn" onclick="copyToClipboard(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy"><i class="bi bi-copy text-lg"></i></button>
-                            <button class="message-action-btn" title="Regenerate" onclick="showToast('Info', 'Regeneration coming soon', 'info')"><i class="bi bi-arrow-repeat text-lg"></i></button>
-                            <button class="message-action-btn" title="Like" onclick="showToast('Feedback', 'Thanks for the positive feedback!', 'success')"><i class="bi bi-hand-thumbs-up text-lg"></i></button>
-                            <button class="message-action-btn" title="Dislike" onclick="showToast('Feedback', 'We will improve this response.', 'info')"><i class="bi bi-hand-thumbs-down text-lg"></i></button>
+                        <div class="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Listen"><i class="bi bi-volume-up"></i></button>
+                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" onclick="copyToClipboard(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy"><i class="bi bi-copy"></i></button>
+                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" title="Regenerate"><i class="bi bi-arrow-repeat"></i></button>
+                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
                         </div>
                     ` : ''}
                 </div>
@@ -140,22 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Typing Indicators
     function showTyping() {
-        document.getElementById('typing-indicator')?.remove();
+        const existing = document.getElementById('typing-indicator-wrapper');
+        if (existing) existing.remove();
+        
         const div = document.createElement('div');
-        div.id = 'typing-indicator';
+        div.id = 'typing-indicator-wrapper';
         div.className = 'max-w-4xl mx-auto flex items-start gap-5 mb-10 message-animate w-full px-4';
         div.innerHTML = `
             <div class="flex-shrink-0">
-                <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-sm">
+                <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-lg avatar-ring">
                     <img src="https://ui-avatars.com/api/?name=IA&background=10a37f&color=fff" class="w-full h-full object-cover">
                 </div>
             </div>
             <div class="flex-1">
-                <h4 class="font-black text-xs uppercase tracking-widest mb-1 text-slate-500">Inclusivity AI</h4>
-                <div class="flex gap-2 p-2">
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce"></span>
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                <h4 class="font-black text-[10px] uppercase tracking-[0.2em] mb-2 text-indigo-500">Inclusivity AI</h4>
+                <div class="typing-indicator">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
                 </div>
             </div>
         `;
@@ -174,10 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_URL}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-                body: JSON.stringify({ message: text, conversationId: currentConversationId })
+                body: JSON.stringify({ 
+                    message: text, 
+                    conversationId: currentConversationId,
+                    language: currentLanguage 
+                })
             });
             const data = await response.json();
-            document.getElementById('typing-indicator')?.remove();
+            document.getElementById('typing-indicator-wrapper')?.remove();
             
             if (response.ok) {
                 renderMessage(data.reply, 'bot');
@@ -190,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderMessage('Error: ' + data.msg, 'bot');
             }
         } catch (err) {
-            document.getElementById('typing-indicator')?.remove();
+            document.getElementById('typing-indicator-wrapper')?.remove();
             renderMessage('Connection error', 'bot');
         }
     }
@@ -235,12 +241,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             document.getElementById('typing-indicator')?.remove();
-            if (res.ok && data.messages) {
-                data.messages.forEach(m => renderMessage(m.content, m.sender));
-                loadChatHistory();
-            }
-        } catch (e) { showToast('Error', 'Failed to load chat', 'error'); }
-    }
+                if (res.ok && data.messages) {
+                    data.messages.forEach(m => renderMessage(m.content, m.sender));
+                    loadChatHistory();
+                    // Set language if returned from conversation (not currently stored per convo, but good practice)
+                    if (data.language) {
+                        currentLanguage = data.language;
+                        document.getElementById('language-select-modal').value = currentLanguage;
+                    }
+                }
+            } catch (e) { showToast('Error', 'Failed to load chat', 'error'); }
+        }
 
     function toggleSidebar() {
         sidebar.classList.toggle('-translate-x-full');
@@ -681,6 +692,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-settings-btn').onclick = () => document.getElementById('settingsModal').classList.add('hidden');
     document.getElementById('settings-form').onsubmit = (e) => {
         e.preventDefault();
+        const selectedLang = document.getElementById('language-select-modal').value;
+        currentLanguage = selectedLang;
+        localStorage.setItem('language', selectedLang);
         showToast('Settings Saved', 'Inclusivity preferences updated', 'success');
         document.getElementById('settingsModal').classList.add('hidden');
     };
@@ -688,6 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Init
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    document.getElementById('language-select-modal').value = currentLanguage;
     updateAuthState();
     attachIconListeners();
 
