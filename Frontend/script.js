@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://chatbot-3-hpx2.onrender.com';
+    const getApiUrl = () => {
+        const localOrigins = ['localhost', '127.0.0.1'];
+        if (localOrigins.includes(window.location.hostname)) {
+            return 'http://127.0.0.1:8000';
+        }
+        return 'https://chatbot-3-hpx2.onrender.com';
+    };
+    const API_URL = getApiUrl();
     
     // State
     let authToken = localStorage.getItem('token');

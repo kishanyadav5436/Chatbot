@@ -10,8 +10,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Force dark background before Tailwind loads */
-        body { background-color: #020617 !important; color: #f8fafc !important; }
+        /* Force background before Tailwind loads */
+        body { background-color: #f8fafc; color: #020617; transition: background-color 0.3s ease; }
+        .dark body { background-color: #020617 !important; color: #f8fafc !important; }
         .animate-blob { animation: blob 10s infinite; filter: blur(100px); opacity: 0.6; }
         @keyframes blob {
             0%, 100% { transform: translate(0, 0) scale(1); }
@@ -48,8 +49,8 @@
 <body class="bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
     
-        <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" style="background-color: #020617;">
-            <div class="absolute inset-0 bg-[#020617]"></div>
+        <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-slate-50 dark:bg-[#020617]">
+            <div class="absolute inset-0 bg-slate-50 dark:bg-[#020617]"></div>
             
             <!-- Particles -->
             <div id="particles-1" class="absolute inset-0 z-0 opacity-40"></div>

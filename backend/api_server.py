@@ -41,10 +41,10 @@ ALLOWED_ORIGINS = [
     "https://inclusionchatbot.vercel.app",
     "https://www.inclusionchatbot.vercel.app",
     "https://chatbot-3-hpx2.onrender.com",
-    "http://localhost:8000",
     "http://localhost:5500",
     "http://127.0.0.1:8000",
-    "http://127.0.0.1:5500"
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:5501"
 ]
 
 # Configure CORS - restricted to known frontend origins

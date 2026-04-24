@@ -278,7 +278,15 @@
     </div>
 
     <script>
-        const API_URL = 'https://chatbot-3-hpx2.onrender.com';
+        // Dynamic API URL detection
+        const getApiUrl = () => {
+            const localOrigins = ['localhost', '127.0.0.1'];
+            if (localOrigins.includes(window.location.hostname)) {
+                return 'http://127.0.0.1:8000';
+            }
+            return 'https://chatbot-3-hpx2.onrender.com';
+        };
+        const API_URL = getApiUrl();
         let authToken = localStorage.getItem('token');
         
         // --- Initialization ---
@@ -411,6 +419,11 @@
                 const tbody = document.getElementById('data-table-body');
                 tbody.innerHTML = '';
                 
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-20 text-center text-slate-500 font-bold uppercase tracking-widest text-xs">No records found. Click "Reload Root Data" to initialize.</td></tr>';
+                    return;
+                }
+                
                 result.data.forEach(item => {
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
@@ -425,7 +438,11 @@
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Fetch error:", e);
+                const tbody = document.getElementById('data-table-body');
+                tbody.innerHTML = `<tr><td colspan="4" class="py-20 text-center text-red-400 font-bold uppercase tracking-widest text-xs">Failed to connect to backend: ${e.message}</td></tr>`;
+            }
         }
 
         function openAddModal() {
