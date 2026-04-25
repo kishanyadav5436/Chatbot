@@ -16,7 +16,16 @@ function startSpeechRecognition() {
     }
 
     window.recognition = new SpeechRecognition();
-    window.recognition.lang = 'en-US';
+    
+    // Language Mapping for Speech Recognition
+    const langMap = {
+        'en': 'en-US', 'hi': 'hi-IN', 'es': 'es-ES', 'fr': 'fr-FR',
+        'de': 'de-DE', 'bn': 'bn-IN', 'mr': 'mr-IN', 'te': 'te-IN',
+        'ta': 'ta-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN'
+    };
+    const currentLang = localStorage.getItem('language') || 'en';
+    window.recognition.lang = langMap[currentLang] || 'en-US';
+    
     window.recognition.interimResults = false;
 
     window.recognition.onstart = () => {

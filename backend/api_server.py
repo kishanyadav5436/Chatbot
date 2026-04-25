@@ -42,6 +42,7 @@ ALLOWED_ORIGINS = [
     "https://www.inclusionchatbot.vercel.app",
     "https://chatbot-3-hpx2.onrender.com",
     "http://localhost:5500",
+    "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://127.0.0.1:5500",
     "http://127.0.0.1:5501"
@@ -169,21 +170,60 @@ def get_bot_response(classification, user_message, conversation_context=None, db
     }
     target_lang = lang_names.get(language, 'English')
 
-    responses = {
-        "greet": "Hello! How can I help you learn about inclusion today?",
-        "goodbye": "Bye! Feel free to ask more questions anytime.",
-        "thanks": "You're welcome!",
-        "ask_diversity": "Diversity is the practice of including people from a range of different social and ethnic backgrounds, genders, sexual orientations, etc.",
-        "ask_equity": "Equity is about fairness and justice. Unlike equality, equity gives people what they need to be successful.",
-        "ask_inclusion": "Inclusion is the act of creating an environment where every individual feels welcomed, respected, and supported.",
-        "ask_accessibility": "Accessibility means designing products, services, or environments for people with disabilities.",
-        "ask_bias": "Unconscious bias refers to the stereotypes we have about others without realizing it.",
-        "affirm": "I'm glad to hear that!",
-        "deny": "Understood. Let me know if you have any other questions.",
-        "nlu_fallback": None 
+    # Localized responses for fixed intents
+    localized_responses = {
+        'en': {
+            "greet": "Hello! How can I help you learn about inclusion today?",
+            "goodbye": "Bye! Feel free to ask more questions anytime.",
+            "thanks": "You're welcome!",
+            "ask_diversity": "Diversity is the practice of including people from a range of different social and ethnic backgrounds, genders, sexual orientations, etc.",
+            "ask_equity": "Equity is about fairness and justice. Unlike equality, equity gives people what they need to be successful.",
+            "ask_inclusion": "Inclusion is the act of creating an environment where every individual feels welcomed, respected, and supported.",
+            "ask_accessibility": "Accessibility means designing products, services, or environments for people with disabilities.",
+            "ask_bias": "Unconscious bias refers to the stereotypes we have about others without realizing it.",
+            "affirm": "I'm glad to hear that!",
+            "deny": "Understood. Let me know if you have any other questions."
+        },
+        'hi': {
+            "greet": "नमस्ते! मैं आज आपको समावेश के बारे में सीखने में कैसे मदद कर सकता हूँ?",
+            "goodbye": "अलविदा! किसी भी समय और प्रश्न पूछने के लिए स्वतंत्र महसूस करें।",
+            "thanks": "आपका स्वागत है!",
+            "ask_diversity": "विविधता विभिन्न सामाजिक और जातीय पृष्ठभूमियों, लिंगों, यौन अभिविन्यासों आदि के लोगों को शामिल करने का अभ्यास है।",
+            "ask_equity": "समानता निष्पक्षता और न्याय के बारे में है। समानता के विपरीत, निष्पक्षता लोगों को वह देती है जिसकी उन्हें सफल होने के लिए आवश्यकता होती है।",
+            "ask_inclusion": "समावेश एक ऐसा वातावरण बनाने का कार्य है जहाँ प्रत्येक व्यक्ति स्वागत, सम्मानित और समर्थित महसूस करता है।",
+            "ask_accessibility": "पहुँच का अर्थ है विकलांग लोगों के लिए उत्पादों, सेवाओं या वातावरण को डिजाइन करना।",
+            "ask_bias": "अचेतन पूर्वाग्रह उन रूढ़ियों को संदर्भित करता है जो हमारे पास दूसरों के बारे में बिना महसूस किए होती हैं।",
+            "affirm": "मुझे यह सुनकर खुशी हुई!",
+            "deny": "समझ गया। मुझे बताएं कि क्या आपके पास कोई अन्य प्रश्न हैं।"
+        },
+        'es': {
+            "greet": "¡Hola! ¿Cómo puedo ayudarte a aprender sobre la inclusión hoy?",
+            "goodbye": "¡Adiós! Siéntete libre de hacer más preguntas en cualquier momento.",
+            "thanks": "¡De nada!",
+            "ask_diversity": "La diversidad es la práctica de incluir a personas de diversos orígenes sociales y étnicos, géneros, orientaciones sexuales, etc.",
+            "ask_equity": "La equidad se trata de justicia y rectitud. A diferencia de la igualdad, la equidad da a las personas lo que necesitan para tener éxito.",
+            "ask_inclusion": "La inclusión es el acto de crear un ambiente donde cada individuo se sienta bienvenido, respetado y apoyado.",
+            "ask_accessibility": "La accesibilidad significa diseñar productos, servicios o entornos para personas con discapacidades.",
+            "ask_bias": "El sesgo inconsciente se refiere a los estereotipos que tenemos sobre los demás sin darnos cuenta.",
+            "affirm": "¡Me alegra saber eso!",
+            "deny": "Entendido. Avísame si tienes alguna otra pregunta."
+        }
     }
     
-    bot_reply = responses.get(classification)
+    # Get response for the specific language, fallback to LLM if language not in localized_responses
+    # OR if the specific intent is not translated.
+    lang_responses = localized_responses.get(language, {})
+    bot_reply = lang_responses.get(classification)
+    
+    # If no static response, and it's not English, fallback to LLM
+    # (LLM is better at translation than a hardcoded dict for all 12 languages)
+    if bot_reply is None and language != 'en':
+        # Force LLM for other languages if not in our dict
+        classification = "nlu_fallback" 
+    elif bot_reply is None:
+        # Fallback to English static responses if still nothing (e.g. for unknown language)
+        bot_reply = localized_responses['en'].get(classification)
+    
     
     if bot_reply is None:
         if llm_service.is_available():

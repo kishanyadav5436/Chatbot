@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getApiUrl = () => {
         const localOrigins = ['localhost', '127.0.0.1'];
         if (localOrigins.includes(window.location.hostname)) {
-            return 'http://127.0.0.1:8000';
+            return 'http://127.0.0.1:5056';
         }
         return 'https://chatbot-3-hpx2.onrender.com';
     };
@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 const opacity = index === 0 ? 0.4 : 0.2;
-                p.className = `absolute rounded-full bg-white animate-float-particle`;
+                p.className = `absolute rounded-full bg-slate-300 dark:bg-white animate-float-particle`;
                 const size = Math.random() * (3 - index) + 1;
                 p.style.width = `${size}px`;
                 p.style.height = `${size}px`;

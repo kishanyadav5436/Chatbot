@@ -282,7 +282,7 @@
         const getApiUrl = () => {
             const localOrigins = ['localhost', '127.0.0.1'];
             if (localOrigins.includes(window.location.hostname)) {
-                return 'http://127.0.0.1:8000';
+                return 'http://127.0.0.1:5056';
             }
             return 'https://chatbot-3-hpx2.onrender.com';
         };
@@ -339,7 +339,8 @@
                     errorBox.classList.remove('hidden');
                 }
             } catch (err) {
-                alert("Network error. Backend might be offline.");
+                errorBox.innerText = `Network error connecting to ${API_URL}. Check server status.`;
+                errorBox.classList.remove('hidden');
             }
         };
 
@@ -441,7 +442,7 @@
             } catch (e) { 
                 console.error("Fetch error:", e);
                 const tbody = document.getElementById('data-table-body');
-                tbody.innerHTML = `<tr><td colspan="4" class="py-20 text-center text-red-400 font-bold uppercase tracking-widest text-xs">Failed to connect to backend: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="py-20 text-center text-red-400 font-bold uppercase tracking-widest text-xs">Failed to connect to backend at ${API_URL}. Check if the server is running on port 5056 and CORS is allowed. Error: ${e.message}</td></tr>`;
             }
         }
 
