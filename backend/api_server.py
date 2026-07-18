@@ -79,17 +79,26 @@ try:
     mongo_uri = os.getenv("MONGO_URI")
     if not mongo_uri:
         logging.error("CRITICAL: MONGO_URI not set! Check your environment variables.")
-        # Fallback for local dev only if not on Render
         if os.getenv("RENDER"):
             db = None
             client = None
         else:
             mongo_uri = "mongodb://localhost:27017/"
-            client = pymongo.MongoClient(mongo_uri)
+            client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=3000)
             db = client["inclusivity-chatbot"]
             logging.info("MongoDB connected locally.")
     else:
-        client = pymongo.MongoClient(mongo_uri)
+        # serverSelectionTimeoutMS=5000 — fail fast, don't hang the worker boot
+        client = pymongo.MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=10000,
+            tls=True,
+            tlsAllowInvalidCertificates=True
+        )
+        # Ping to verify connection
+        client.admin.command('ping')
         db = client["inclusivity-chatbot"]
         logging.info("MongoDB connected successfully.")
 
@@ -103,6 +112,8 @@ except Exception as e:
     logging.error(f"Could not connect to MongoDB: {e}")
     client = None
     db = None
+    users_collection = None
+    conversations_collection = None
 
 # --- OAUTH 2.0 SETUP (FINAL FIX FOR 'iss' CLAIM) ---
 oauth = OAuth(app)
@@ -293,8 +304,8 @@ def token_required(f):
 @app.route("/api/chat", methods=["POST"])
 @token_required
 def chat(user_id, email, is_guest):
-    # Validate database connection
-    if client is None or db is None:
+    # Guest users can chat without DB (no history saved)
+    if not is_guest and (client is None or db is None):
         return jsonify({"error": "Database connection unavailable"}), 503
 
     message = request.json.get("message")
@@ -436,10 +447,7 @@ def login():
 @app.route("/api/auth/guest", methods=["POST"])
 @limiter.limit("20 per minute")
 def guest_login():
-    # Validate database connection
-    if client is None or db is None:
-        return jsonify({"error": "Database connection unavailable"}), 503
-
+    # Guest login does NOT require MongoDB — guests get a JWT-only session
     try:
         guest_id = ObjectId()
         guest_email = f"guest_{guest_id}@chat.local"
@@ -449,6 +457,8 @@ def guest_login():
         logging.error(f"Guest login error: {e}")
         return jsonify({"msg": "Guest login failed"}), 500
 
+# Support both /api/auth/google (frontend) and /api/auth/google/login (legacy)
+@app.route('/api/auth/google')
 @app.route('/api/auth/google/login')
 def google_login():
     redirect_uri = url_for('google_callback', _external=True)
