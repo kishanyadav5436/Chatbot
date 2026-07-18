@@ -355,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('drawer-backdrop')?.classList.add('hidden');
     }
     document.getElementById('history-drawer-btn')?.addEventListener('click', openHistoryDrawer);
+    document.getElementById('nav-history-btn')?.addEventListener('click', openHistoryDrawer);
     document.getElementById('history-drawer-close-btn')?.addEventListener('click', closeHistoryDrawer);
     document.getElementById('drawer-backdrop')?.addEventListener('click', closeHistoryDrawer);
 
