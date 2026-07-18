@@ -134,7 +134,7 @@ google = oauth.register(
 
 def retrieve_relevant_data(query, db):
     """Retrieve relevant data from MongoDB datasets using full-text search."""
-    if not db:
+    if db is None:
         return ""
         
     knowledge_parts = []
