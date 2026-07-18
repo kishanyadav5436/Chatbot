@@ -1,55 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // ── API ──────────────────────────────────────────────────────────────────
     const getApiUrl = () => {
-        const localOrigins = ['localhost', '127.0.0.1'];
-        if (localOrigins.includes(window.location.hostname)) {
-            return 'http://127.0.0.1:5056';
-        }
-        return 'https://chatbot-3-hpx2.onrender.com';
+        const local = ['localhost', '127.0.0.1'];
+        return local.includes(window.location.hostname)
+            ? 'http://127.0.0.1:5056'
+            : 'https://chatbot-3-hpx2.onrender.com';
     };
     const API_URL = getApiUrl();
-    
-    // State
+
+    // ── State ────────────────────────────────────────────────────────────────
     let authToken = localStorage.getItem('token');
     let userEmail = localStorage.getItem('email');
     let currentConversationId = localStorage.getItem('currentConversationId');
     let currentLanguage = localStorage.getItem('language') || 'en';
 
-    function updateAuthState() {
-        authToken = localStorage.getItem('token');
-        userEmail = localStorage.getItem('email');
-        if (authToken) {
-            document.documentElement.classList.add('is-authenticated');
-            document.getElementById('authModal').classList.add('hidden');
-            document.getElementById('authModal').style.display = 'none';
-            document.getElementById('chat-container').classList.remove('hidden');
-            
-            // Update sidebar profile
-            if (userEmail) {
-                const emailSidebar = document.getElementById('user-email-sidebar');
-                const nameSidebar = document.getElementById('user-name-sidebar');
-                const avatarSidebar = document.getElementById('user-avatar-sidebar');
-                
-                if (emailSidebar) emailSidebar.innerText = userEmail;
-                if (nameSidebar) nameSidebar.innerText = userEmail.split('@')[0];
-                if (avatarSidebar) avatarSidebar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userEmail)}&background=10a37f&color=fff`;
-            }
-            
-            loadChatHistory();
-            if (currentConversationId) loadConversation(currentConversationId);
-        } else {
-            document.documentElement.classList.remove('is-authenticated');
-            document.getElementById('authModal').classList.remove('hidden');
-            document.getElementById('authModal').style.display = 'flex';
-            document.getElementById('chat-container').classList.add('hidden');
-            
-            // Clear current conversation
-            currentConversationId = null;
-            const cb = document.getElementById('chat-box');
-            if (cb) cb.innerHTML = '';
-        }
-    }
-
-    // Parse Token from URL
+    // ── Token from URL (OAuth redirect) ─────────────────────────────────────
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token');
     const emailParam = urlParams.get('email');
@@ -60,139 +25,220 @@ document.addEventListener('DOMContentLoaded', () => {
         authToken = tokenParam;
         userEmail = emailParam || localStorage.getItem('email');
     }
-    
-    // Elements
-    const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('user-input');
-    const chatForm = document.getElementById('chat-form');
-    const sendBtn = document.getElementById('send-btn');
-    const sidebar = document.getElementById('sidebar');
+
+    // ── DOM refs ─────────────────────────────────────────────────────────────
+    const chatBox    = document.getElementById('chat-box');
+    const userInput  = document.getElementById('user-input');
+    const chatForm   = document.getElementById('chat-form');
+    const sendBtn    = document.getElementById('send-btn');
     const historyList = document.getElementById('chat-history-list');
-    
-    // Initialize marked
+
+    // ── Marked config ────────────────────────────────────────────────────────
     marked.setOptions({ gfm: true, breaks: true });
 
+    // ════════════════════════════════════════════════════════════════════════
+    //  AUTH STATE
+    // ════════════════════════════════════════════════════════════════════════
+    function updateAuthState() {
+        authToken = localStorage.getItem('token');
+        userEmail = localStorage.getItem('email');
+
+        if (authToken) {
+            document.documentElement.classList.add('is-authenticated');
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('chat-container').classList.remove('hidden');
+            document.getElementById('chat-container').style.display = 'flex';
+
+            // Sidebar profile
+            if (userEmail) {
+                const emailEl = document.getElementById('user-email-sidebar');
+                const nameEl  = document.getElementById('user-name-sidebar');
+                if (emailEl) emailEl.textContent = userEmail;
+                if (nameEl)  nameEl.textContent  = userEmail.split('@')[0];
+            }
+
+            loadChatHistory();
+            if (currentConversationId) loadConversation(currentConversationId);
+        } else {
+            document.documentElement.classList.remove('is-authenticated');
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('chat-container').classList.add('hidden');
+            currentConversationId = null;
+            if (chatBox) chatBox.innerHTML = '';
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  TOAST
+    // ════════════════════════════════════════════════════════════════════════
+    window.showToast = (title, msg, type = 'info') => {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+
+        const bgMap = { error: 'bg-error', success: 'bg-primary-container', info: 'bg-secondary-container' };
+        const textMap = { error: 'text-on-error', success: 'text-on-primary-container', info: 'text-on-secondary-container' };
+        const iconMap = { error: 'error', success: 'check_circle', info: 'info' };
+
+        toast.className = `${bgMap[type] || bgMap.info} ${textMap[type] || textMap.info} px-5 py-4 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300`;
+        toast.innerHTML = `
+            <span class="material-symbols-outlined mat-fill text-xl">${iconMap[type]}</span>
+            <div>
+                <p class="font-label-sm text-label-sm font-bold uppercase tracking-wide">${title}</p>
+                <p class="font-body-md text-sm opacity-90">${msg}</p>
+            </div>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px)';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    };
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  RENDER MESSAGE
+    // ════════════════════════════════════════════════════════════════════════
     function renderMessage(text, sender) {
         const welcome = document.getElementById('welcome-screen');
         if (welcome) welcome.style.display = 'none';
 
-        const div = document.createElement('div');
-        div.className = `flex flex-col mb-10 message-animate group w-full`;
-        
         const isBot = sender === 'bot';
-        const avatarUrl = isBot ? 'https://ui-avatars.com/api/?name=IA&background=10a37f&color=fff' : `https://ui-avatars.com/api/?name=${encodeURIComponent(localStorage.getItem('email') || 'U')}&background=cbd5e1&color=475569`;
-        
-        // Handle Code Blocks for Bot
-        let messageContent = isBot ? marked.parse(DOMPurify.sanitize(text)) : `<p>${text}</p>`;
-        
-        // Tabbed code block simulation
+        let messageContent = isBot
+            ? marked.parse(DOMPurify.sanitize(text))
+            : `<p>${DOMPurify.sanitize(text)}</p>`;
+
+        // Replace code blocks with styled containers
         if (isBot && text.includes('```')) {
-            messageContent = messageContent.replace(/<pre><code class="language-(\w+)">([^]*?)<\/code><\/pre>/g, (match, lang, code) => {
-                return `
-                    <div class="code-block-container">
-                        <div class="code-header">
-                            <div class="code-tabs">
-                                <span class="code-tab active">${lang.toUpperCase()}</span>
-                                <span class="code-tab" onclick="showToast('Info', 'Additional tabs coming soon', 'info')">CSS</span>
-                                <span class="code-tab" onclick="showToast('Info', 'Additional tabs coming soon', 'info')">JS</span>
-                            </div>
-                            <button onclick="copyToClipboard(\`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)" class="flex items-center gap-1 hover:text-green-400 transition-colors">
-                                <i class="bi bi-copy"></i> Copy code
-                            </button>
+            messageContent = messageContent.replace(/<pre><code class="language-(\w+)">([^]*?)<\/code><\/pre>/g, (match, lang, code) => `
+                <div class="code-block-container">
+                    <div class="code-header">
+                        <div style="display:flex;gap:0.75rem;">
+                            <span style="opacity:1;">${lang.toUpperCase()}</span>
                         </div>
-                        <div class="code-content">
-                            <pre><code class="language-${lang}">${code}</code></pre>
-                        </div>
+                        <button onclick="copyToClipboard(\`${code.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`, this)" style="display:flex;align-items:center;gap:4px;cursor:pointer;hover:color:#6bd8cb;transition:color 0.2s">
+                            <span class="material-symbols-outlined" style="font-size:16px;">content_copy</span> Copy
+                        </button>
                     </div>
-                `;
-            });
+                    <div class="code-content"><pre><code class="language-${lang}">${code}</code></pre></div>
+                </div>
+            `);
         }
 
-        div.innerHTML = `
-            <div class="max-w-4xl mx-auto flex items-start gap-5 w-full px-4">
-                <!-- Avatar -->
-                <div class="flex-shrink-0 mt-1">
-                    <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-lg avatar-ring">
-                        <img src="${avatarUrl}" class="w-full h-full object-cover">
-                    </div>
-                </div>
+        // Bot avatar: green circle with icon
+        const botAvatarHTML = `
+            <div class="w-9 h-9 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center mt-1">
+                <span class="material-symbols-outlined text-primary mat-fill" style="font-size:20px;">smart_toy</span>
+            </div>`;
 
-                <!-- Message Content -->
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-black text-[10px] uppercase tracking-[0.2em] mb-2 text-indigo-500 dark:text-indigo-400">
-                        ${isBot ? 'Inclusivity AI' : (userEmail ? userEmail.split('@')[0] : 'You')}
-                    </h4>
-                    <div class="${isBot ? 'bot-bubble' : 'user-bubble p-5 shadow-xl'}">
-                        <div class="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed">
-                            ${messageContent}
+        // User avatar: initials
+        const initials = (userEmail || 'U').charAt(0).toUpperCase();
+        const userAvatarHTML = `
+            <div class="w-9 h-9 rounded-full bg-primary flex-shrink-0 flex items-center justify-center mt-1">
+                <span class="material-symbols-outlined text-on-primary" style="font-size:20px;">person</span>
+            </div>`;
+
+        const div = document.createElement('div');
+        div.className = 'message-animate mb-6 group';
+
+        if (isBot) {
+            div.innerHTML = `
+                <div class="max-w-[800px] mx-auto flex gap-4 items-start">
+                    ${botAvatarHTML}
+                    <div class="flex-1 min-w-0">
+                        <p class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2">Inclusivity AI</p>
+                        <div class="bot-bubble p-4 shadow-sm">
+                            <div class="font-body-md text-body-md text-on-surface leading-relaxed prose max-w-none">
+                                ${messageContent}
+                            </div>
+                        </div>
+                        <!-- Action Bar -->
+                        <div class="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                                onclick="speakText(\`${text.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">
+                                <span class="material-symbols-outlined" style="font-size:14px;">volume_up</span>
+                            </button>
+                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                                onclick="copyToClipboard(\`${text.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`, this)">
+                                <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+                            </button>
+                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+                                <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <!-- Action Bar (Bot Only) -->
-                    ${isBot ? `
-                        <div class="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" onclick="speakText(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Listen"><i class="bi bi-volume-up"></i></button>
-                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" onclick="copyToClipboard(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="Copy"><i class="bi bi-copy"></i></button>
-                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" title="Regenerate"><i class="bi bi-arrow-repeat"></i></button>
-                            <button class="message-action-btn bg-white/5 hover:bg-white/10 rounded-xl p-2" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
+                </div>`;
+        } else {
+            div.innerHTML = `
+                <div class="max-w-[800px] mx-auto flex flex-row-reverse gap-4 items-start">
+                    ${userAvatarHTML}
+                    <div class="max-w-[80%]">
+                        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2 text-right">${userEmail ? userEmail.split('@')[0] : 'You'}</p>
+                        <div class="user-bubble p-4 shadow-md">
+                            <div class="font-body-md text-body-md text-white leading-relaxed">
+                                ${messageContent}
+                            </div>
                         </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-        
+                    </div>
+                </div>`;
+        }
+
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Typing Indicators
+    // ════════════════════════════════════════════════════════════════════════
+    //  TYPING INDICATOR
+    // ════════════════════════════════════════════════════════════════════════
     function showTyping() {
-        const existing = document.getElementById('typing-indicator-wrapper');
-        if (existing) existing.remove();
-        
+        removeTyping();
         const div = document.createElement('div');
         div.id = 'typing-indicator-wrapper';
-        div.className = 'max-w-4xl mx-auto flex items-start gap-5 mb-10 message-animate w-full px-4';
+        div.className = 'message-animate mb-6';
         div.innerHTML = `
-            <div class="flex-shrink-0">
-                <div class="w-9 h-9 rounded-full overflow-hidden border border-slate-200 dark:border-gray-800 shadow-lg avatar-ring">
-                    <img src="https://ui-avatars.com/api/?name=IA&background=10a37f&color=fff" class="w-full h-full object-cover">
+            <div class="max-w-[800px] mx-auto flex gap-4 items-start">
+                <div class="w-9 h-9 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center mt-1">
+                    <span class="material-symbols-outlined text-primary mat-fill" style="font-size:20px;">smart_toy</span>
                 </div>
-            </div>
-            <div class="flex-1">
-                <h4 class="font-black text-[10px] uppercase tracking-[0.2em] mb-2 text-indigo-500">Inclusivity AI</h4>
-                <div class="typing-indicator">
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
+                <div class="bot-bubble p-4 shadow-sm flex items-center gap-2">
+                    <div class="flex gap-1 items-center">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant ml-1">Thinking…</span>
                 </div>
-            </div>
-        `;
+            </div>`;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    function removeTyping() {
+        document.getElementById('typing-indicator-wrapper')?.remove();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  SEND MESSAGE
+    // ════════════════════════════════════════════════════════════════════════
     async function sendMessage(text) {
         if (!text.trim()) return;
         renderMessage(text, 'user');
         userInput.value = '';
         userInput.style.height = 'auto';
+        sendBtn.disabled = true;
         showTyping();
-        
+
         try {
-            const response = await fetch(`${API_URL}/api/chat`, {
+            const res = await fetch(`${API_URL}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-                body: JSON.stringify({ 
-                    message: text, 
-                    conversationId: currentConversationId,
-                    language: currentLanguage 
-                })
+                body: JSON.stringify({ message: text, conversationId: currentConversationId, language: currentLanguage })
             });
-            const data = await response.json();
-            document.getElementById('typing-indicator-wrapper')?.remove();
-            
-            if (response.ok) {
+            const data = await res.json();
+            removeTyping();
+
+            if (res.ok) {
                 renderMessage(data.reply, 'bot');
                 if (data.conversationId && data.conversationId !== currentConversationId) {
                     currentConversationId = data.conversationId;
@@ -200,39 +246,46 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadChatHistory();
                 }
             } else {
-                renderMessage('Error: ' + data.msg, 'bot');
+                renderMessage('Error: ' + (data.msg || 'Something went wrong.'), 'bot');
             }
-        } catch (err) {
-            document.getElementById('typing-indicator-wrapper')?.remove();
-            renderMessage('Connection error', 'bot');
+        } catch {
+            removeTyping();
+            renderMessage('Connection error. Please check your network and try again.', 'bot');
+        } finally {
+            sendBtn.disabled = false;
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    //  CHAT HISTORY
+    // ════════════════════════════════════════════════════════════════════════
     async function loadChatHistory() {
-        if (!authToken) return;
+        if (!authToken || !historyList) return;
         try {
-            const res = await fetch(`${API_URL}/api/chat/history`, {
-                headers: { 'x-auth-token': authToken }
-            });
+            const res = await fetch(`${API_URL}/api/chat/history`, { headers: { 'x-auth-token': authToken } });
             const data = await res.json();
-            if (res.ok && data.history) {
-                historyList.innerHTML = '';
-                if (data.history.length === 0) {
-                    historyList.innerHTML = `<div class="text-center py-10 opacity-30 text-[10px] font-black uppercase tracking-widest">No History</div>`;
-                    return;
-                }
-                data.history.forEach(chat => {
-                    const isActive = currentConversationId === chat.id;
-                    const item = document.createElement('button');
-                    item.className = `w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 group ${isActive ? 'bg-slate-100 dark:bg-gray-800 border-l-4 border-green-500' : 'hover:bg-slate-50 dark:hover:bg-gray-900 border-l-4 border-transparent text-slate-600 dark:text-slate-400'}`;
-                    item.innerHTML = `
-                        <i class="bi bi-chat-left text-sm"></i>
-                        <span class="truncate font-medium text-xs flex-1">${chat.title || 'New Chat'}</span>
-                    `;
-                    item.onclick = () => loadConversation(chat.id);
-                    historyList.appendChild(item);
-                });
+            if (!res.ok || !data.history) return;
+
+            historyList.innerHTML = '';
+            if (data.history.length === 0) {
+                historyList.innerHTML = `<div class="text-center py-10 font-label-sm text-label-sm text-outline opacity-60">No conversations yet</div>`;
+                return;
             }
+            data.history.forEach(chat => {
+                const isActive = currentConversationId === chat.id;
+                const item = document.createElement('button');
+                item.className = `w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 ${
+                    isActive
+                        ? 'bg-secondary-container text-on-secondary-container'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                }`;
+                item.innerHTML = `
+                    <span class="material-symbols-outlined text-lg shrink-0">${isActive ? 'chat_bubble' : 'chat'}</span>
+                    <span class="font-label-md text-label-md truncate flex-1">${chat.title || 'New Chat'}</span>
+                `;
+                item.onclick = () => loadConversation(chat.id);
+                historyList.appendChild(item);
+            });
         } catch (e) { console.error(e); }
     }
 
@@ -240,434 +293,273 @@ document.addEventListener('DOMContentLoaded', () => {
         currentConversationId = id;
         localStorage.setItem('currentConversationId', id);
         chatBox.innerHTML = '';
-        if (window.innerWidth < 768) toggleSidebar();
         showTyping();
         try {
-            const res = await fetch(`${API_URL}/api/chat/history/${id}`, {
-                headers: { 'x-auth-token': authToken }
-            });
+            const res = await fetch(`${API_URL}/api/chat/history/${id}`, { headers: { 'x-auth-token': authToken } });
             const data = await res.json();
-            document.getElementById('typing-indicator')?.remove();
-                if (res.ok && data.messages) {
-                    data.messages.forEach(m => renderMessage(m.content, m.sender));
-                    loadChatHistory();
-                    // Set language if returned from conversation (not currently stored per convo, but good practice)
-                    if (data.language) {
-                        currentLanguage = data.language;
-                        document.getElementById('language-select-modal').value = currentLanguage;
-                    }
+            removeTyping();
+            if (res.ok && data.messages) {
+                data.messages.forEach(m => renderMessage(m.content, m.sender));
+                loadChatHistory();
+                if (data.language) {
+                    currentLanguage = data.language;
+                    const langSel = document.getElementById('language-select-modal');
+                    if (langSel) langSel.value = currentLanguage;
                 }
-            } catch (e) { showToast('Error', 'Failed to load chat', 'error'); }
-        }
-
-    function toggleSidebar() {
-        sidebar.classList.toggle('-translate-x-full');
-        document.getElementById('sidebar-overlay').classList.toggle('hidden');
+            }
+        } catch { showToast('Error', 'Failed to load conversation', 'error'); }
     }
 
-    window.showToast = (title, msg, type) => {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        const colors = type === 'error' ? 'bg-red-600' : (type === 'info' ? 'bg-blue-600' : 'bg-green-600');
-        toast.className = `${colors} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom duration-500 mb-2 z-[200]`;
-        toast.innerHTML = `
-            <i class="bi ${type === 'error' ? 'bi-x-circle' : 'bi-info-circle'} text-xl"></i>
-            <div>
-                <p class="font-black text-[9px] uppercase tracking-widest">${title}</p>
-                <p class="text-xs font-bold opacity-90">${msg}</p>
-            </div>
-        `;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('animate-out', 'fade-out', 'slide-out-to-bottom');
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    };
+    // ════════════════════════════════════════════════════════════════════════
+    //  SIDEBAR TOGGLES
+    // ════════════════════════════════════════════════════════════════════════
+    const mainSidebar      = document.getElementById('main-sidebar');
+    const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+    const mainSidebarToggle = document.getElementById('main-sidebar-toggle');
+    const mobileMenuBtn    = document.getElementById('mobile-menu-btn');
 
-    const attachIconListeners = () => {
-        // Sidebar Navigation
-        document.getElementById('nav-search-btn-sidebar').onclick = () => {
-            if (sidebar.classList.contains('-translate-x-full')) toggleSidebar();
-            setTimeout(() => document.getElementById('history-search-input').focus(), 300);
-        };
-        
-        document.getElementById('nav-chats-btn').onclick = () => {
-            if (sidebar.classList.contains('-translate-x-full')) toggleSidebar();
-        };
+    // Restore desktop sidebar state
+    if (localStorage.getItem('sidebarState') === 'closed' && window.innerWidth >= 768) {
+        mainSidebar?.classList.add('sidebar-closed');
+    }
 
-        document.getElementById('nav-marketplace-btn').onclick = () => {
-            document.getElementById('marketplaceModal').classList.remove('hidden');
-            // Close mobile sidebar if open
-            document.getElementById('main-sidebar').classList.remove('mobile-open');
-            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
-        };
-        document.getElementById('nav-saved-btn').onclick = () => {
-            document.getElementById('savedCommandsModal').classList.remove('hidden');
-            document.getElementById('main-sidebar').classList.remove('mobile-open');
-            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
-        };
-        document.getElementById('nav-settings-btn-sidebar').onclick = () => {
-            document.getElementById('settingsModal').classList.remove('hidden');
-            document.getElementById('main-sidebar').classList.remove('mobile-open');
-            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
-        };
+    mainSidebarToggle?.addEventListener('click', () => {
+        const closed = mainSidebar.classList.toggle('sidebar-closed');
+        localStorage.setItem('sidebarState', closed ? 'closed' : 'open');
+    });
 
-        document.getElementById('nav-about-btn-sidebar').onclick = () => {
-            const aboutModal = document.getElementById('aboutModal');
-            if (aboutModal) {
-                aboutModal.classList.remove('hidden');
-                setTimeout(() => aboutModal.classList.remove('opacity-0'), 10);
-            }
-            document.getElementById('main-sidebar').classList.remove('mobile-open');
-            document.getElementById('mobile-sidebar-overlay').classList.remove('active');
-        };
+    mobileMenuBtn?.addEventListener('click', () => {
+        mainSidebar?.classList.toggle('mobile-open');
+        mobileSidebarOverlay?.classList.toggle('active');
+    });
 
-        // Modal Close Logic
-        ['marketplaceModal', 'savedCommandsModal', 'settingsModal', 'aboutModal', 'adminModal'].forEach(id => {
-            const modal = document.getElementById(id);
-            if (!modal) return;
-            const closeBtn = document.getElementById(`close-${id.replace('Modal', '')}-btn`);
-            if (closeBtn) closeBtn.onclick = () => {
-                modal.classList.add('opacity-0');
-                if(!id.includes('about') && !id.includes('admin')) modal.classList.add('hidden');
-                else setTimeout(() => modal.classList.add('hidden'), 300);
-            };
-            modal.onclick = (e) => { 
-                if (e.target === modal || e.target.classList.contains('backdrop-blur-md')) {
-                    modal.classList.add('opacity-0');
-                    if(!id.includes('about') && !id.includes('admin')) modal.classList.add('hidden');
-                    else setTimeout(() => modal.classList.add('hidden'), 300);
-                } 
-            };
-        });
+    mobileSidebarOverlay?.addEventListener('click', () => {
+        mainSidebar?.classList.remove('mobile-open');
+        mobileSidebarOverlay?.classList.remove('active');
+    });
 
-        // Admin functionality
-        const logToAdmin = (msg) => {
-            const el = document.getElementById('admin-log');
-            if (el) {
-                el.innerHTML += `&gt; ${msg}<br>`;
-                el.scrollTop = el.scrollHeight;
-            }
-        };
-
-        const adminLoadBtn = document.getElementById('admin-load-data-btn');
-        if (adminLoadBtn) {
-            adminLoadBtn.onclick = async () => {
-                logToAdmin('Requesting root data reload...');
-                try {
-                    const res = await fetch(`${API_URL}/api/admin/load-data`, {
-                        method: 'POST',
-                        headers: { 'x-auth-token': authToken }
-                    });
-                    const data = await res.json();
-                    if (res.ok) logToAdmin(`Success: ${data.status}`);
-                    else logToAdmin(`Error: ${data.error || 'Failed'}`);
-                } catch (e) { logToAdmin('Error: Network failed'); }
-            };
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            mainSidebar?.classList.remove('mobile-open');
+            mobileSidebarOverlay?.classList.remove('active');
         }
+    });
 
-        const adminAppendBtn = document.getElementById('admin-append-data-btn');
-        if (adminAppendBtn) {
-            adminAppendBtn.onclick = async () => {
-                logToAdmin('Requesting new data append...');
-                try {
-                    const res = await fetch(`${API_URL}/api/admin/append-data`, {
-                        method: 'POST',
-                        headers: { 'x-auth-token': authToken }
-                    });
-                    const data = await res.json();
-                    if (res.ok) logToAdmin(`Success: ${data.status}`);
-                    else logToAdmin(`Error: ${data.error || 'Failed'}`);
-                } catch (e) { logToAdmin('Error: Network failed'); }
-            };
+    // ── History drawer ────────────────────────────────────────────────────
+    function openHistoryDrawer() {
+        document.getElementById('history-drawer')?.classList.add('drawer-open');
+        document.getElementById('drawer-backdrop')?.classList.remove('hidden');
+    }
+    function closeHistoryDrawer() {
+        document.getElementById('history-drawer')?.classList.remove('drawer-open');
+        document.getElementById('drawer-backdrop')?.classList.add('hidden');
+    }
+    document.getElementById('history-drawer-btn')?.addEventListener('click', openHistoryDrawer);
+    document.getElementById('history-drawer-close-btn')?.addEventListener('click', closeHistoryDrawer);
+    document.getElementById('drawer-backdrop')?.addEventListener('click', closeHistoryDrawer);
+
+    // ── History search ────────────────────────────────────────────────────
+    document.getElementById('history-search-input')?.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll('#chat-history-list button').forEach(btn => {
+            const title = btn.querySelector('span:last-child')?.textContent.toLowerCase() || '';
+            btn.style.display = title.includes(q) ? 'flex' : 'none';
+        });
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  MODALS (open)
+    // ════════════════════════════════════════════════════════════════════════
+    const openModal  = (id) => document.getElementById(id)?.classList.remove('hidden');
+    const closeModal = (id) => document.getElementById(id)?.classList.add('hidden');
+
+    document.getElementById('nav-settings-btn-sidebar')?.addEventListener('click', () => { openModal('settingsModal'); closeMobile(); });
+    document.getElementById('nav-saved-btn')?.addEventListener('click', () => { openModal('savedCommandsModal'); closeMobile(); });
+    document.getElementById('nav-resources-btn')?.addEventListener('click', () => { openModal('marketplaceModal'); closeMobile(); });
+
+    function closeMobile() {
+        mainSidebar?.classList.remove('mobile-open');
+        mobileSidebarOverlay?.classList.remove('active');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  MODAL CLOSE BUTTONS
+    // ════════════════════════════════════════════════════════════════════════
+    ['settingsModal','marketplaceModal','savedCommandsModal','aboutModal','adminModal'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        // Backdrop click
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(id); });
+    });
+
+    document.getElementById('close-settings-btn')?.addEventListener('click', () => closeModal('settingsModal'));
+    document.getElementById('close-marketplace-btn')?.addEventListener('click', () => closeModal('marketplaceModal'));
+    document.getElementById('close-savedCommands-btn')?.addEventListener('click', () => closeModal('savedCommandsModal'));
+    document.getElementById('close-about-btn')?.addEventListener('click', () => closeModal('aboutModal'));
+    document.getElementById('close-admin-btn')?.addEventListener('click', () => closeModal('adminModal'));
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  SETTINGS FORM
+    // ════════════════════════════════════════════════════════════════════════
+    const langSelect = document.getElementById('language-select-modal');
+    if (langSelect) langSelect.value = currentLanguage;
+
+    document.getElementById('settings-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        currentLanguage = langSelect?.value || 'en';
+        localStorage.setItem('language', currentLanguage);
+        showToast('Saved', 'Language preference updated', 'success');
+        closeModal('settingsModal');
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  PROMPT ITEMS (Saved Insights)
+    // ════════════════════════════════════════════════════════════════════════
+    document.querySelectorAll('.prompt-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const text = item.querySelector('p:last-child')?.textContent?.replace(/["""]/g, '').trim();
+            if (text && userInput) {
+                userInput.value = text;
+                userInput.dispatchEvent(new Event('input'));
+                userInput.focus();
+                closeModal('savedCommandsModal');
+                showToast('Loaded', 'Prompt added to input', 'success');
+            }
+        });
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  MARKETPLACE "Install" BUTTONS
+    // ════════════════════════════════════════════════════════════════════════
+    document.querySelectorAll('#marketplaceModal button').forEach(btn => {
+        if (btn.textContent.trim() === 'Install Tool') {
+            btn.addEventListener('click', () => {
+                const name = btn.closest('.p-5')?.querySelector('h4')?.textContent || 'Tool';
+                btn.textContent = 'Installed ✓';
+                btn.disabled = true;
+                showToast('Installed', `${name} added to your workspace`, 'success');
+            });
         }
+    });
 
-        // Saved Commands (Prompt Selection)
-        document.querySelectorAll('.prompt-item').forEach(item => {
-            item.onclick = () => {
-                const promptText = item.querySelector('.font-bold').innerText.replace(/"/g, '');
-                const input = document.getElementById('user-input');
-                input.value = promptText;
-                input.dispatchEvent(new Event('input'));
-                input.focus();
-                document.getElementById('savedCommandsModal').classList.add('hidden');
-                showToast('Prompts Loaded', 'Command added to input', 'success');
-            };
+    // ════════════════════════════════════════════════════════════════════════
+    //  HEADER SECONDARY BUTTONS
+    // ════════════════════════════════════════════════════════════════════════
+    const headerSecondary = document.querySelectorAll('.header-secondary-btn');
+    // [0] history is already wired above
+    // [1] bookmark
+    if (headerSecondary[1]) {
+        headerSecondary[1].addEventListener('click', () => {
+            if (!currentConversationId) return showToast('Info', 'Start a chat first', 'info');
+            showToast('Bookmarked', 'Thread saved to your library', 'success');
         });
-
-        // Market Place (Tool Simulation)
-        document.querySelectorAll('#marketplaceModal button').forEach(btn => {
-            if (btn.innerText.includes('Install')) {
-                btn.onclick = () => {
-                    const toolName = btn.parentElement.querySelector('h4').innerText;
-                    btn.innerText = 'Installed';
-                    btn.classList.replace('bg-green-500', 'bg-slate-400');
-                    btn.classList.replace('bg-blue-500', 'bg-slate-400');
-                    showToast('Feature Enabled', `${toolName} added to your workspace`, 'success');
-                    setTimeout(() => document.getElementById('marketplaceModal').classList.add('hidden'), 500);
-                };
-            }
-        });
-        const brandBtn = document.getElementById('brand-dropdown-btn');
-        const modelMenu = document.getElementById('model-select-menu');
-        brandBtn.onclick = (e) => {
-            e.stopPropagation();
-            const isHidden = modelMenu.classList.contains('hidden');
-            if (isHidden) {
-                modelMenu.classList.remove('hidden');
-                setTimeout(() => {
-                    modelMenu.classList.remove('scale-95', 'opacity-0');
-                    modelMenu.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            } else {
-                modelMenu.classList.add('scale-95', 'opacity-0');
-                modelMenu.classList.remove('scale-100', 'opacity-100');
-                setTimeout(() => modelMenu.classList.add('hidden'), 200);
-            }
-        };
-
-        document.querySelectorAll('.model-option').forEach(opt => {
-            opt.onclick = () => {
-                const model = opt.getAttribute('data-model');
-                document.getElementById('active-model-name').innerText = model;
-                document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                modelMenu.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => modelMenu.classList.add('hidden'), 200);
-                showToast('Model Changed', `Switched to ${model}`, 'success');
-            };
-        });
-
-        document.addEventListener('click', () => {
-            modelMenu.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => modelMenu.classList.add('hidden'), 200);
-        });
-
-        // Header Icons (Right side actions: Bookmark, Download, Share)
-        const headerButtons = document.querySelectorAll('.header-secondary-btn');
-        
-        // Bookmark
-        headerButtons[0].onclick = () => {
-            if (!currentConversationId) return showToast('Error', 'Start a chat first', 'error');
-            showToast('Bookmarked', 'Thread saved to library', 'success');
-        };
-
-        // Download (Export)
-        headerButtons[1].onclick = () => {
-            const messages = Array.from(chatBox.querySelectorAll('.prose')).map(p => {
-                const isBot = p.closest('.message-animate').querySelector('h4').innerText.includes('Inclusivity');
-                return `${isBot ? 'BOT' : (userEmail || 'USER')}: ${p.innerText}`;
+    }
+    // [2] download
+    if (headerSecondary[2]) {
+        headerSecondary[2].addEventListener('click', () => {
+            const messages = Array.from(chatBox.querySelectorAll('.message-animate')).map(el => {
+                const nameEl = el.querySelector('.font-label-sm');
+                const bodyEl = el.querySelector('.font-body-md');
+                return `${nameEl?.textContent.trim() || 'Unknown'}: ${bodyEl?.textContent.trim() || ''}`;
             }).join('\n\n');
-            if (!messages) return showToast('Error', 'No chat to export', 'error');
-            
+            if (!messages) return showToast('Info', 'No chat to export', 'info');
             const blob = new Blob([messages], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `Inclusivity_AI_Chat_${new Date().getTime()}.txt`;
-            a.click();
-            showToast('Exported', 'Chat history saved to downloads', 'success');
-        };
-
-        // Share
-        if (headerButtons.length > 2) {
-            headerButtons[2].onclick = () => showToast('Share', 'Secure link generated for sharing', 'info');
-        }
-
-        const attachBtn = document.getElementById('attach-btn');
-        if (attachBtn) {
-            attachBtn.onclick = () => showToast('Attachment', 'File attachments coming soon!', 'info');
-        }
-
-        document.getElementById('view-plans-btn').onclick = () => showToast('Plans', 'Premium plans unlock next-gen empathy models', 'info');
-        
-        // History Search
-        document.getElementById('history-search-input').oninput = (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('#chat-history-list button').forEach(item => {
-                const title = item.querySelector('span').innerText.toLowerCase();
-                item.style.display = title.includes(query) ? 'flex' : 'none';
-            });
-        };
-    };
-
-    // Text to Speech
-    window.speakText = (text) => {
-        if (!window.speechSynthesis) return showToast('Error', 'Speech not supported', 'error');
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
-        showToast('Speaking', 'Reading message aloud...', 'info');
-    };
-
-    // Copy to Clipboard (Global helper)
-    window.copyToClipboard = (text, btn) => {
-        navigator.clipboard.writeText(text).then(() => {
-            const originalIcon = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-check2 text-green-400"></i> Copied!';
-            setTimeout(() => { btn.innerHTML = originalIcon; }, 2000);
-            showToast('Copied', 'Content saved to clipboard', 'success');
+            a.href = url; a.download = `Inclusivity_AI_${Date.now()}.txt`; a.click();
+            showToast('Exported', 'Chat saved to downloads', 'success');
         });
-    };
+    }
 
+    // ════════════════════════════════════════════════════════════════════════
+    //  ATTACHMENT
+    // ════════════════════════════════════════════════════════════════════════
+    document.getElementById('attach-btn')?.addEventListener('click', () =>
+        showToast('Coming Soon', 'File attachments will be available soon!', 'info'));
 
-        // --- Sidebar Toggles ---
-        
-        // Main Sidebar (Dark)
-        const mainSidebar = document.getElementById('main-sidebar');
-        const mainSidebarToggle = document.getElementById('main-sidebar-toggle');
-        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
-        
-        // Persistence (desktop only)
-        const sidebarState = localStorage.getItem('sidebarState');
-        if (sidebarState === 'closed' && window.innerWidth >= 768) {
-            mainSidebar.classList.add('sidebar-closed');
-        }
-
-        // Desktop sidebar toggle
-        mainSidebarToggle.onclick = () => {
-            const isClosed = mainSidebar.classList.toggle('sidebar-closed');
-            localStorage.setItem('sidebarState', isClosed ? 'closed' : 'open');
-        };
-
-        // Mobile hamburger menu
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.onclick = () => {
-                mainSidebar.classList.toggle('mobile-open');
-                mobileSidebarOverlay.classList.toggle('active');
-            };
-        }
-
-        // Close mobile sidebar on overlay click (also handled inline in HTML, but belt-and-suspenders)
-        if (mobileSidebarOverlay) {
-            mobileSidebarOverlay.onclick = () => {
-                mainSidebar.classList.remove('mobile-open');
-                mobileSidebarOverlay.classList.remove('active');
-            };
-        }
-
-        // Close mobile sidebar on window resize to desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                mainSidebar.classList.remove('mobile-open');
-                mobileSidebarOverlay.classList.remove('active');
-            }
+    // ════════════════════════════════════════════════════════════════════════
+    //  SUGGESTION CARDS
+    // ════════════════════════════════════════════════════════════════════════
+    document.querySelectorAll('.suggestion-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const prompt = card.querySelector('.font-label-sm')?.textContent?.trim();
+            if (prompt) sendMessage(prompt);
         });
-
-        // History Sidebar (Drawer)
-        document.getElementById('history-drawer-btn').onclick = toggleSidebar;
-        document.getElementById('sidebar-close-btn').onclick = toggleSidebar;
-        document.getElementById('sidebar-overlay').onclick = toggleSidebar;
-    document.getElementById('nav-theme-toggle').onclick = () => {
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    };
-
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text = userInput.value;
-        if (text.trim() === '/admin') {
-            const adminModal = document.getElementById('adminModal');
-            if (adminModal) {
-                adminModal.classList.remove('hidden');
-                setTimeout(() => adminModal.classList.remove('opacity-0'), 10);
-            }
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            return;
-        }
-        sendMessage(text);
     });
 
-    userInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 192) + 'px';
-        sendBtn.disabled = !this.value.trim();
-    });
-
-    userInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (userInput.value.trim()) chatForm.dispatchEvent(new Event('submit'));
-        }
-    });
-
-    document.getElementById('new-chat-btn').onclick = () => {
+    // ════════════════════════════════════════════════════════════════════════
+    //  NEW CHAT / CLEAR
+    // ════════════════════════════════════════════════════════════════════════
+    document.getElementById('new-chat-btn')?.addEventListener('click', () => {
         currentConversationId = null;
         localStorage.removeItem('currentConversationId');
         chatBox.innerHTML = '';
-        document.getElementById('welcome-screen').style.display = 'block';
+        const ws = document.getElementById('welcome-screen');
+        if (ws) ws.style.display = 'block';
         loadChatHistory();
-    };
+    });
 
-    const clearChatBtn = document.getElementById('clear-chat-btn');
-    if (clearChatBtn) {
-        clearChatBtn.onclick = async () => {
-            if (!currentConversationId) return showToast('Info', 'No active chat to clear.', 'info');
-            if (confirm('Are you sure you want to clear this chat?')) {
-                try {
-                    const res = await fetch(`${API_URL}/api/chat/reset`, {
-                        method: 'POST',
-                        headers: { 'x-auth-token': authToken }
-                    });
-                    if (res.ok) {
-                        chatBox.innerHTML = '';
-                        document.getElementById('welcome-screen').style.display = 'block';
-                        showToast('Cleared', 'Chat context has been reset.', 'success');
-                    }
-                } catch (e) {
-                    showToast('Error', 'Failed to clear chat.', 'error');
-                }
+    document.getElementById('clear-chat-btn')?.addEventListener('click', async () => {
+        if (!currentConversationId) return showToast('Info', 'No active chat to clear.', 'info');
+        if (!confirm('Clear this chat? This cannot be undone.')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/chat/reset`, {
+                method: 'POST', headers: { 'x-auth-token': authToken }
+            });
+            if (res.ok) {
+                chatBox.innerHTML = '';
+                const ws = document.getElementById('welcome-screen');
+                if (ws) ws.style.display = 'block';
+                showToast('Cleared', 'Chat context has been reset.', 'success');
             }
-        };
-    }
+        } catch { showToast('Error', 'Failed to clear chat.', 'error'); }
+    });
 
-    const handleLogout = () => {
-        localStorage.clear();
-        location.reload();
-    };
+    // ════════════════════════════════════════════════════════════════════════
+    //  LOGOUT
+    // ════════════════════════════════════════════════════════════════════════
+    const handleLogout = () => { localStorage.clear(); location.reload(); };
+    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+    document.getElementById('logout-btn-sidebar')?.addEventListener('click', handleLogout);
 
-    document.getElementById('logout-btn').onclick = handleLogout;
-    const logoutBtnSidebar = document.getElementById('logout-btn-sidebar');
-    if (logoutBtnSidebar) logoutBtnSidebar.onclick = handleLogout;
-
-    // Auth Layout Toggling
-    const loginSection = document.getElementById('login-section');
+    // ════════════════════════════════════════════════════════════════════════
+    //  AUTH FORMS
+    // ════════════════════════════════════════════════════════════════════════
+    // Toggle login ↔ register
+    const loginSection    = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
-    const authTitle = document.getElementById('auth-title');
-    const loginToggleBtn = document.getElementById('login-toggle-btn');
-    const registerToggleBtn = document.getElementById('register-toggle-btn');
+    const authTitle       = document.getElementById('auth-title');
 
-    if (loginToggleBtn) {
-        loginToggleBtn.onclick = () => {
-            registerSection.classList.add('hidden');
-            loginSection.classList.remove('hidden');
-            if (authTitle) authTitle.innerText = 'Welcome Back';
-        };
-    }
-    
-    if (registerToggleBtn) {
-        registerToggleBtn.onclick = () => {
-            loginSection.classList.add('hidden');
-            registerSection.classList.remove('hidden');
-            if (authTitle) authTitle.innerText = 'Join Inclusivity AI';
-        };
-    }
+    document.getElementById('register-toggle-btn')?.addEventListener('click', () => {
+        loginSection.classList.add('hidden');
+        registerSection.classList.remove('hidden');
+        if (authTitle) authTitle.textContent = 'Join Inclusivity AI';
+    });
+    document.getElementById('login-toggle-btn')?.addEventListener('click', () => {
+        registerSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        if (authTitle) authTitle.textContent = 'Welcome to Inclusivity AI';
+    });
 
-    // Auth
-    document.getElementById('login-form').onsubmit = (e) => {
+    // Form submissions
+    document.getElementById('login-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        handleAuth('login', { email: document.getElementById('login-email').value, password: document.getElementById('login-password').value });
-    };
-    document.getElementById('register-form').onsubmit = (e) => {
+        handleAuth('login', {
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-password').value
+        });
+    });
+    document.getElementById('register-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        handleAuth('register', { email: document.getElementById('register-email').value, password: document.getElementById('register-password').value });
-    };
-    const guestBtn = document.getElementById('guest-login-btn');
-    if (guestBtn) guestBtn.onclick = () => handleAuth('guest', {});
+        handleAuth('register', {
+            email: document.getElementById('register-email').value,
+            password: document.getElementById('register-password').value
+        });
+    });
+    document.getElementById('guest-login-btn')?.addEventListener('click', () => handleAuth('guest', {}));
+    document.getElementById('google-btn')?.addEventListener('click', () => {
+        window.location.href = `${API_URL}/api/auth/google`;
+    });
 
     async function handleAuth(type, body) {
         const spinner = document.getElementById(`${type}-spinner`);
@@ -686,78 +578,110 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showToast('Auth Failed', data.msg || 'Invalid credentials', 'error');
             }
-        } catch (e) {
-            showToast('Error', 'Connection failed', 'error');
-        } finally { spinner?.classList.add('hidden'); }
+        } catch {
+            showToast('Error', 'Connection failed. Is the server running?', 'error');
+        } finally {
+            spinner?.classList.add('hidden');
+        }
     }
 
-    document.querySelectorAll('.suggestion-card').forEach(card => {
-        card.onclick = () => sendMessage(card.querySelectorAll('p')[1].innerText);
+    // ════════════════════════════════════════════════════════════════════════
+    //  CHAT FORM SUBMIT
+    // ════════════════════════════════════════════════════════════════════════
+    chatForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = userInput?.value?.trim();
+        if (!text) return;
+        // Secret admin command
+        if (text === '/admin') {
+            document.getElementById('adminModal')?.classList.remove('hidden');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            return;
+        }
+        sendMessage(text);
     });
 
-    // Modals
-    document.getElementById('close-settings-btn').onclick = () => document.getElementById('settingsModal').classList.add('hidden');
-    document.getElementById('settings-form').onsubmit = (e) => {
-        e.preventDefault();
-        const selectedLang = document.getElementById('language-select-modal').value;
-        currentLanguage = selectedLang;
-        localStorage.setItem('language', selectedLang);
-        showToast('Settings Saved', 'Inclusivity preferences updated', 'success');
-        document.getElementById('settingsModal').classList.add('hidden');
-    };
+    // Textarea auto-resize
+    userInput?.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 192) + 'px';
+        if (sendBtn) sendBtn.disabled = !this.value.trim();
+    });
 
-    // Init
+    userInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (userInput.value.trim()) chatForm.requestSubmit();
+        }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  THEME TOGGLE
+    // ════════════════════════════════════════════════════════════════════════
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    document.getElementById('language-select-modal').value = currentLanguage;
-    updateAuthState();
-    attachIconListeners();
+    const themeBtn = document.getElementById('nav-theme-toggle');
+    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? 'dark_mode' : 'light_mode';
 
-    // Antigravity Background Particles
-    function initParticles() {
-        const containers = ['particles-1', 'particles-2'];
-        containers.forEach((id, index) => {
-            const container = document.getElementById(id);
-            if (!container) return;
-            const count = 50 + (index * 30); // More particles
-            for (let i = 0; i < count; i++) {
-                const p = document.createElement('div');
-                const opacity = index === 0 ? 0.4 : 0.2;
-                p.className = `absolute rounded-full bg-slate-300 dark:bg-white animate-float-particle`;
-                const size = Math.random() * (3 - index) + 1;
-                p.style.width = `${size}px`;
-                p.style.height = `${size}px`;
-                p.style.left = `${Math.random() * 100}%`;
-                p.style.top = `${Math.random() * 100}%`; // Distributed across full screen
-                p.style.setProperty('--p-opacity', opacity);
-                
-                // Randomize animation
-                const duration = 15 + Math.random() * 25;
-                const delay = Math.random() * -duration; // Negative delay to start mid-animation
-                p.style.animationDuration = `${duration}s`;
-                p.style.animationDelay = `${delay}s`;
-                
-                // Add twinkle to some
-                if (Math.random() > 0.7) {
-                    p.classList.add('animate-twinkle');
-                }
-                
-                container.appendChild(p);
-            }
-        });
-    }
-    initParticles();
+    themeBtn?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        if (themeBtn) themeBtn.textContent = isDark ? 'dark_mode' : 'light_mode';
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  ADMIN PANEL
+    // ════════════════════════════════════════════════════════════════════════
+    const logToAdmin = (msg) => {
+        const el = document.getElementById('admin-log');
+        if (el) { el.innerHTML += `&gt; ${msg}<br>`; el.scrollTop = el.scrollHeight; }
+    };
+
+    document.getElementById('admin-load-data-btn')?.addEventListener('click', async () => {
+        logToAdmin('Requesting root data reload…');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/load-data`, {
+                method: 'POST', headers: { 'x-auth-token': authToken }
+            });
+            const data = await res.json();
+            logToAdmin(res.ok ? `Success: ${data.status}` : `Error: ${data.error || 'Failed'}`);
+        } catch { logToAdmin('Error: Network failed'); }
+    });
+
+    document.getElementById('admin-append-data-btn')?.addEventListener('click', async () => {
+        logToAdmin('Requesting new data append…');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/append-data`, {
+                method: 'POST', headers: { 'x-auth-token': authToken }
+            });
+            const data = await res.json();
+            logToAdmin(res.ok ? `Success: ${data.status}` : `Error: ${data.error || 'Failed'}`);
+        } catch { logToAdmin('Error: Network failed'); }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════════════════════════════
+    updateAuthState();
 });
 
-// Utility for password visibility
-function togglePasswordVisibility(inputId, icon) {
-    const input = document.getElementById(inputId);
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('bi-eye', 'bi-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('bi-eye-slash', 'bi-eye');
-    }
-}
+// ── Global helpers ───────────────────────────────────────────────────────────
+window.copyToClipboard = (text, btn) => {
+    navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (icon) { const orig = icon.textContent; icon.textContent = 'check'; setTimeout(() => icon.textContent = orig, 2000); }
+        }
+        window.showToast?.('Copied', 'Content copied to clipboard', 'success');
+    });
+};
 
+window.speakText = (text) => {
+    if (!window.speechSynthesis) return window.showToast?.('Error', 'Speech not supported', 'error');
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0; utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+    window.showToast?.('Speaking', 'Reading message aloud…', 'info');
+};

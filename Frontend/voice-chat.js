@@ -30,7 +30,8 @@ function startSpeechRecognition() {
 
     window.recognition.onstart = () => {
         voiceControls.classList.remove('hidden');
-        voiceBtn.classList.add('bg-red-500', 'text-white');
+        voiceControls.classList.add('active');
+        voiceBtn.classList.add('voice-active');
     };
 
     window.recognition.onresult = (event) => {
@@ -46,7 +47,8 @@ function startSpeechRecognition() {
 
     window.recognition.onend = () => {
         voiceControls.classList.add('hidden');
-        voiceBtn.classList.remove('bg-red-500', 'text-white');
+        voiceControls.classList.remove('active');
+        voiceBtn.classList.remove('voice-active');
     };
 
     window.recognition.start();
