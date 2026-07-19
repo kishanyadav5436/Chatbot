@@ -28,6 +28,7 @@ server_status.txt
 .DS_Store
 Thumbs.db
 
+
 # Junk/accidental files
 {intent}')
 
@@ -36,3 +37,4 @@ app_old.py
 
 # Node (if any)
 node_modules/
+. env
