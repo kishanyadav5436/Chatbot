@@ -76,16 +76,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const toast = document.createElement('div');
 
-        const bgMap = { error: 'bg-error', success: 'bg-primary-container', info: 'bg-secondary-container' };
-        const textMap = { error: 'text-on-error', success: 'text-on-primary-container', info: 'text-on-secondary-container' };
-        const iconMap = { error: 'error', success: 'check_circle', info: 'info' };
+        const colorMap = {
+            error:   { bg: 'rgba(255,107,107,0.12)', border: 'rgba(255,107,107,0.3)', icon: '#ff6b6b',  iconName: 'error' },
+            success: { bg: 'rgba(0,199,168,0.12)',   border: 'rgba(0,199,168,0.3)',   icon: '#00c7a8', iconName: 'check_circle' },
+            info:    { bg: 'rgba(91,143,255,0.12)',  border: 'rgba(91,143,255,0.3)',  icon: '#5b8fff', iconName: 'info' },
+        };
+        const c = colorMap[type] || colorMap.info;
 
-        toast.className = `${bgMap[type] || bgMap.info} ${textMap[type] || textMap.info} px-5 py-4 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300`;
+        toast.style.cssText = `background:${c.bg};border:1px solid ${c.border};backdrop-filter:blur(12px);padding:0.875rem 1.125rem;border-radius:0.875rem;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;align-items:center;gap:0.75rem;transition:all 0.3s ease;min-width:260px;max-width:360px;`;
         toast.innerHTML = `
-            <span class="material-symbols-outlined mat-fill text-xl">${iconMap[type]}</span>
+            <span class="material-symbols-outlined mat-fill" style="font-size:1.25rem;color:${c.icon};flex-shrink:0;">${c.iconName}</span>
             <div>
-                <p class="font-label-sm text-label-sm font-bold uppercase tracking-wide">${title}</p>
-                <p class="font-body-md text-sm opacity-90">${msg}</p>
+                <p style="font-size:0.75rem;font-weight:700;color:#e6edf3;text-transform:uppercase;letter-spacing:0.06em;">${title}</p>
+                <p style="font-size:0.8125rem;color:#8b949e;">${msg}</p>
             </div>
         `;
         container.appendChild(toast);
@@ -126,17 +129,17 @@ document.addEventListener('DOMContentLoaded', () => {
             `);
         }
 
-        // Bot avatar: green circle with icon
+        // Bot avatar
         const botAvatarHTML = `
-            <div class="w-9 h-9 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center mt-1">
-                <span class="material-symbols-outlined text-primary mat-fill" style="font-size:20px;">smart_toy</span>
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,199,168,0.15),rgba(155,109,255,0.15));border:1px solid rgba(0,199,168,0.25);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:4px;">
+                <span class="material-symbols-outlined mat-fill" style="font-size:18px;color:#00c7a8;">smart_toy</span>
             </div>`;
 
-        // User avatar: initials
+        // User avatar
         const initials = (userEmail || 'U').charAt(0).toUpperCase();
         const userAvatarHTML = `
-            <div class="w-9 h-9 rounded-full bg-primary flex-shrink-0 flex items-center justify-center mt-1">
-                <span class="material-symbols-outlined text-on-primary" style="font-size:20px;">person</span>
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,199,168,0.25),rgba(0,168,150,0.3));border:1px solid rgba(0,199,168,0.35);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:4px;">
+                <span class="material-symbols-outlined" style="font-size:18px;color:#00c7a8;">person</span>
             </div>`;
 
         const div = document.createElement('div');
@@ -144,39 +147,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isBot) {
             div.innerHTML = `
-                <div class="max-w-[800px] mx-auto flex gap-4 items-start">
+                <div style="max-width:760px;margin:0 auto;display:flex;gap:0.875rem;align-items:flex-start;">
                     ${botAvatarHTML}
-                    <div class="flex-1 min-w-0">
-                        <p class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2">Inclusivity AI</p>
-                        <div class="bot-bubble p-4 shadow-sm">
-                            <div class="font-body-md text-body-md text-on-surface leading-relaxed prose max-w-none">
+                    <div style="flex:1;min-width:0;">
+                        <p style="font-size:0.7rem;font-weight:700;color:#00c7a8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.4rem;">Inclusivity AI</p>
+                        <div class="bot-bubble" style="padding:0.875rem 1rem;">
+                            <div style="font-size:0.9375rem;line-height:1.65;color:#e6edf3;" class="prose max-w-none">
                                 ${messageContent}
                             </div>
                         </div>
                         <!-- Action Bar -->
-                        <div class="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                        <div style="display:flex;align-items:center;gap:0.375rem;margin-top:0.5rem;opacity:0;transition:opacity 0.2s;" class="msg-actions">
+                            <button style="display:flex;align-items:center;gap:0.25rem;padding:0.25rem 0.625rem;border-radius:9999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#8b949e;font-size:0.75rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(0,199,168,0.1)';this.style.color='#00c7a8'" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='#8b949e'"
                                 onclick="speakText(\`${text.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">
-                                <span class="material-symbols-outlined" style="font-size:14px;">volume_up</span>
+                                <span class="material-symbols-outlined" style="font-size:13px;">volume_up</span>
                             </button>
-                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                            <button style="display:flex;align-items:center;gap:0.25rem;padding:0.25rem 0.625rem;border-radius:9999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#8b949e;font-size:0.75rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(0,199,168,0.1)';this.style.color='#00c7a8'" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='#8b949e'"
                                 onclick="copyToClipboard(\`${text.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`, this)">
-                                <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+                                <span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>
                             </button>
-                            <button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container transition-colors">
-                                <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
+                            <button style="display:flex;align-items:center;gap:0.25rem;padding:0.25rem 0.625rem;border-radius:9999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#8b949e;font-size:0.75rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(0,199,168,0.1)';this.style.color='#00c7a8'" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='#8b949e'">
+                                <span class="material-symbols-outlined" style="font-size:13px;">thumb_up</span>
                             </button>
                         </div>
                     </div>
                 </div>`;
+            // Show action bar on hover
+            div.addEventListener('mouseenter', () => { const a = div.querySelector('.msg-actions'); if(a) a.style.opacity='1'; });
+            div.addEventListener('mouseleave', () => { const a = div.querySelector('.msg-actions'); if(a) a.style.opacity='0'; });
         } else {
             div.innerHTML = `
-                <div class="max-w-[800px] mx-auto flex flex-row-reverse gap-4 items-start">
+                <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:row-reverse;gap:0.875rem;align-items:flex-start;">
                     ${userAvatarHTML}
-                    <div class="max-w-[80%]">
-                        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2 text-right">${userEmail ? userEmail.split('@')[0] : 'You'}</p>
-                        <div class="user-bubble p-4 shadow-md">
-                            <div class="font-body-md text-body-md text-white leading-relaxed">
+                    <div style="max-width:80%;">
+                        <p style="font-size:0.7rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.4rem;text-align:right;">${userEmail ? userEmail.split('@')[0] : 'You'}</p>
+                        <div class="user-bubble" style="padding:0.875rem 1rem;">
+                            <div style="font-size:0.9375rem;line-height:1.65;color:#e6edf3;">
                                 ${messageContent}
                             </div>
                         </div>
@@ -195,19 +201,20 @@ document.addEventListener('DOMContentLoaded', () => {
         removeTyping();
         const div = document.createElement('div');
         div.id = 'typing-indicator-wrapper';
-        div.className = 'message-animate mb-6';
+        div.className = 'message-animate';
+        div.style.marginBottom = '1.25rem';
         div.innerHTML = `
-            <div class="max-w-[800px] mx-auto flex gap-4 items-start">
-                <div class="w-9 h-9 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center mt-1">
-                    <span class="material-symbols-outlined text-primary mat-fill" style="font-size:20px;">smart_toy</span>
+            <div style="max-width:760px;margin:0 auto;display:flex;gap:0.875rem;align-items:flex-start;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,199,168,0.15),rgba(155,109,255,0.15));border:1px solid rgba(0,199,168,0.25);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:4px;">
+                    <span class="material-symbols-outlined mat-fill" style="font-size:18px;color:#00c7a8;">smart_toy</span>
                 </div>
-                <div class="bot-bubble p-4 shadow-sm flex items-center gap-2">
-                    <div class="flex gap-1 items-center">
+                <div class="bot-bubble" style="padding:0.875rem 1rem;display:flex;align-items:center;gap:0.625rem;">
+                    <div style="display:flex;gap:4px;align-items:center;">
                         <span class="typing-dot"></span>
                         <span class="typing-dot"></span>
                         <span class="typing-dot"></span>
                     </div>
-                    <span class="font-label-sm text-label-sm text-on-surface-variant ml-1">Thinking…</span>
+                    <span style="font-size:0.8125rem;color:#8b949e;">Thinking…</span>
                 </div>
             </div>`;
         chatBox.appendChild(div);
@@ -558,9 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     document.getElementById('guest-login-btn')?.addEventListener('click', () => handleAuth('guest', {}));
-    document.getElementById('google-btn')?.addEventListener('click', () => {
-        window.location.href = `${API_URL}/api/auth/google`;
-    });
+    // Google OAuth removed – email/password and guest login only
 
     async function handleAuth(type, body) {
         const spinner = document.getElementById(`${type}-spinner`);
@@ -620,15 +625,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // ════════════════════════════════════════════════════════════════════════
     //  THEME TOGGLE
     // ════════════════════════════════════════════════════════════════════════
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     const themeBtn = document.getElementById('nav-theme-toggle');
-    if (themeBtn) themeBtn.textContent = savedTheme === 'dark' ? 'dark_mode' : 'light_mode';
+    const themeIcon = themeBtn?.querySelector('.material-symbols-outlined');
+    if (themeIcon) themeIcon.textContent = savedTheme === 'dark' ? 'dark_mode' : 'light_mode';
 
     themeBtn?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        if (themeBtn) themeBtn.textContent = isDark ? 'dark_mode' : 'light_mode';
+        if (themeIcon) themeIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
     });
 
     // ════════════════════════════════════════════════════════════════════════
